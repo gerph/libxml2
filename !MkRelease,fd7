@@ -33,7 +33,8 @@ copy xmlLint    ^.XML.xmlLint    ~C~VF~Q
 copy xmlCatalog ^.XML.xmlCatalog ~C~VF~Q
 |
 | Hope like hell that we've actually got an xsltproc by now
-xsltproc -output doc/xmltools.html http://www.movspclr.co.uk/dtd/100/prm-html.xsl doc/xmltools.xml
+| FIXME: We don't have the XSLT file for the PRM-in-XML in this source tree yet.
+|xsltproc -output doc/xmltools.html http://www.movspclr.co.uk/dtd/100/prm-html.xsl doc/xmltools.xml
 
 | Return to our root
 dir ^

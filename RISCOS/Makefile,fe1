@@ -161,6 +161,9 @@ XMLenttests: xmlLint
 $(ODIR).libxml:  $(LIBOBJS)
         libfile $(libfileflags) $(LIBOBJS)
 
+.INIT:
+        cdir $(ODIR)
+
 
 # Dynamic dependencies:
 o.testDocbook: c.testDocbook h.libxml h.config include.libxml.h.xmlversion include.libxml.h.xmlmemory include.libxml.h.xmlversion include.libxml.h.threads include.libxml.h.globals include.libxml.h.parser include.libxml.h.tree include.libxml.h.xmlversion include.libxml.h.xmlregexp include.libxml.h.xmlversion include.libxml.h.tree include.libxml.h.valid include.libxml.h.tree include.libxml.h.list include.libxml.h.xmlautomata include.libxml.h.xmlversion include.libxml.h.tree include.libxml.h.xmlregexp include.libxml.h.xmlregexp include.libxml.h.entities include.libxml.h.tree include.libxml.h.encoding include.libxml.h.xmlversion include.libxml.h.tree include.libxml.h.xmlIO include.libxml.h.xmlversion include.libxml.h.globals include.libxml.h.tree include.libxml.h.parser include.libxml.h.encoding include.libxml.h.globals include.libxml.h.xmlerror include.libxml.h.parser include.libxml.h.SAX include.libxml.h.parser include.libxml.h.xlink include.libxml.h.tree include.libxml.h.xmlmemory include.libxml.h.threads include.libxml.h.globals include.libxml.h.DOCBparser include.libxml.h.parser include.libxml.h.tree include.libxml.h.debugXML include.libxml.h.tree include.libxml.h.xpath include.libxml.h.tree include.libxml.h.hash include.libxml.h.parser include.libxml.h.globals
