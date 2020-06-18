@@ -1,0 +1,23 @@
+| Test that the XML parts work
+/utils.leaf   Test$Leaf   %0
+/utils.parent Test$Parent %0
+If "<Test$Leaf>" LEFT 1 = "/" Then Obey
+Echo Testing file <Test$Leaf>
+dir ^.Original
+Set Test$RISCOS ^.RISCOS
+
+| Convert extension to Unix-like format
+Set Test$UnixLeaf <Test$Leaf>
+If (Test$Leaf RIGHT 4) = "/xml" Then SetEval Test$UnixLeaf (Test$Leaf LEFT ((LEN Test$Leaf) - 4) + ".xml") 
+If (Test$Leaf RIGHT 4) = "/rdf" Then SetEval Test$UnixLeaf (Test$Leaf LEFT ((LEN Test$Leaf) - 4) + ".rdf") 
+| Conversion done!
+
+do /^.RISCOS.xmllint --push ./test/<Test$UnixLeaf> > <Test$RISCOS>.result.<Test$Leaf>
+do gnudiff    result.<Test$Leaf>     <Test$RISCOS>.result.<Test$Leaf>
+do /^.RISCOS.xmllint --push ^/RISCOS/result/<Test$UnixLeaf> > <Test$RISCOS>.result.<Test$Leaf>/2
+do gnudiff    result.<Test$Leaf>     <Test$RISCOS>.result.<Test$Leaf>/2
+
+| Tidy up
+remove <Test$RISCOS>.result.<Test$Leaf>
+remove <Test$RISCOS>.result.<Test$Leaf>/2
+back

@@ -1,0 +1,37 @@
+/* riscos - specific to RISC OS things */
+
+#ifndef RISCOS_H
+#define RISCOS_H
+
+#include <stdarg.h> /* for vsnprintf */
+
+/* DUMMY implementation - it works, but it's limited in the size it can
+   write. Unfortunately RISC OS clib isn't all that helpful in not providing
+   an snprintf implementation. */
+int snprintf(char *output, int size, const char *format, ...);
+int vsnprintf(char *output, int size, const char *format, va_list args);
+
+/* Convert a filename in unix format to a RISC OS style filename - we handle
+   URI-like filenames in these routines */
+char *riscosfilename(const char *src);
+/* Same thing but with c and h translation */
+char *riscoscfilename(const char *src);
+/* Reverse translation - not to be used without very good reason */
+char *unixfilename(const char *src);
+
+/* Duplicate a string - nothing special, it's just not in RISC OS clib */
+char *strdup(const char *str);
+
+/* Read current working directory */
+char *getcwd(char *buffer,int length);
+
+/* Change current directory, assuming RISC OS format */
+int chdir(const char *buffer);
+
+/* Change current directory, assuming RISC OS format */
+int mkdir(const char *buffer, int mode);
+
+/* RISC OS routine to set the type of a file - native filename */
+void settype(char *filename, int type);
+
+#endif

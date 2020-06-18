@@ -1,0 +1,253 @@
+/* riscos - specific to RISC OS things */
+
+#ifndef __riscos
+#error This is only required for RISC OS builds
+#else
+#include "libxml/riscos.h"
+#include <ctype.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <string.h>
+#include <stdio.h>
+#include <assert.h>
+#include "swis.h"
+
+/* Define this to debug this file */
+/* #define DEBUG */
+
+/* A large buffer to write into and hope with ! */
+static char buffer[2048];
+static char filenamebuffer[2048];
+static char unixbuffer[2048];
+
+int vsnprintf(char *output, int size, const char *format, va_list args)
+{
+  int count;
+
+  count = vsprintf(buffer,format,args);
+  assert(count<sizeof(buffer));
+
+  if (count>size)
+    buffer[size-1]='\0';
+
+  strcpy(output,buffer);
+
+  return count;
+}
+
+int snprintf(char *output, int size, const char *format, ...)
+{
+  int count;
+  va_list args;
+
+  va_start(args, format);
+  count = vsnprintf(output,size,format,args);
+  va_end(args);
+
+  return count;
+}
+
+char *riscosfilename(const char *src)
+{
+  char previous='.'; /* Previous is a native filename char */
+  char *dest=filenamebuffer;
+  char c;
+
+#ifdef DEBUG
+  printf("riscosfilename('%s')\n",src);
+#endif
+  if (strncmp(src,"file:///",8)==0)
+    src+=8; /* Skip any preceeding file component */
+  if (src[0]=='/')
+    src+=1; /* We can be given this if we went through the one of the
+               routines */
+
+  while ((c=*src++)!='\0')
+  {
+    if (c=='.')
+    {
+      if (previous=='.' && *src=='/')
+      {
+        src++;
+        continue; /* /./ */
+      }
+      if (previous=='.' && *src=='.' && src[1]=='/')
+      {
+        src++;
+        c='^';
+      }
+      else
+        c='/';
+    }
+    else if (c=='/')
+    {
+      if (previous=='.')
+        continue;
+      c='.';
+    }
+    else if (c=='%')
+    {
+      if (isxdigit(src[0]) && isxdigit(src[1]))
+      {
+        /* First digit */
+        if (src[0]<='9') c=src[0]-'0';
+        else if (src[0]<='F') c=src[0]-'A'+10;
+        else if (src[0]<='f') c=src[0]-'a'+10;
+        /* Second digit */
+        if (src[1]<='9') c=c*16+src[1]-'0';
+        else if (src[1]<='F') c=c*16+src[1]-'A'+10;
+        else if (src[1]<='f') c=c*16+src[1]-'a'+10;
+        /* Skip hex digits */
+        src+=2;
+      }
+    }
+    previous=c;
+    *dest++=c;
+  }
+  *dest='\0';
+#ifdef DEBUG
+  printf("  = '%s'\n",filenamebuffer);
+#endif
+  return filenamebuffer;
+}
+
+/* Same routine as above, but with reversal for c and h files */
+char *riscoscfilename(const char *src)
+{
+  char *buffer=riscosfilename(src);
+  int len=strlen(buffer);
+  char *end=buffer+len;
+#ifdef DEBUG
+  printf("RISC OS C name translation: %s ",buffer);
+#endif
+  if (len>3)
+  {
+    char last=end[-1];
+    if ((last=='c' || last=='h') && end[-2]=='/')
+    {
+      char *tail=strrchr(buffer,'.');
+      if (tail==NULL)
+      {
+        end[-2]='\0';
+        /* JRF: strcpy here is very wrong */
+        memmove(&buffer[2],buffer,len);
+        buffer[0]=last;
+        buffer[1]='.';
+      }
+      else if (tail!=NULL)
+      {
+        end[-2]='\0';
+        memmove(&tail[2],tail,strlen(tail)+1);
+        tail[1]=last;
+      }
+    }
+  }
+#ifdef DEBUG
+  printf("= %s\n",buffer);
+#endif
+  return buffer;
+}
+
+/* FROM uri.c */
+/*
+ * reserved = ";" | "/" | "?" | ":" | "@" | "&" | "=" | "+" | "$" | ","
+ */
+
+#define IS_RESERVED(x) (((x) == ';') || ((x) == '/') || ((x) == '?') || \
+        ((x) == ':') || ((x) == '@') || ((x) == '&') || ((x) == '=') || \
+        ((x) == '<') || ((x) == '>') || \
+        ((x) == '+') || ((x) == '$') || ((x) == ','))
+
+/* Perform the reverse translation - RISCOS -> Unix.
+   This is required for when we take arguments from the user and wish them
+   to be in native format. 99% of the time we /don't/ do this because it
+   leads to inconsistency. However, when reading system variables, they will
+   be set in non-native format, so we must translate to Unix-like format
+   (actually a file uri) such that we always give libxml2 filenames in
+   that format and don't confuse matters further.
+   Note also that we start a new filename when we encounter a space; this
+   allows us to have space separated filenames as expected by the
+   var SGML_CATALOG_FILES.
+*/
+char *unixfilename(const char *src)
+{
+  char *dest=unixbuffer;
+  char c;
+  int first=1;
+#ifdef DEBUG
+  printf("unixfilename('%s')",src);
+#endif
+
+  while ((c=*src++)!='\0')
+  {
+    if (c==' ')
+    {
+      first=1;
+      continue;
+    }
+
+    if (first)
+    {
+      strcpy(dest,"file:///");
+      dest+=strlen("file:///");
+      first=0;
+    }
+
+    if (c=='.')
+      c='/';
+    else if (c=='/')
+      c='.';
+    else if (IS_RESERVED(c) || c>=0x80)
+    {
+      *dest++='%';
+      *dest++="0123456789ABCDEF"[c/16];
+      c="0123456789ABCDEF"[c%16];
+    }
+    *dest++=c;
+  }
+  *dest='\0';
+#ifdef DEBUG
+  printf(" = %s\n",unixbuffer);
+#endif
+  return unixbuffer;
+}
+
+char *strdup(const char *str)
+{
+  char *newstr=malloc(strlen(str)+1);
+  if (newstr!=NULL)
+    strcpy(newstr,str);
+  return newstr;
+}
+
+/* Should probably expand this properly */
+char *getcwd(char *buffer,int length)
+{
+  if (length<2)
+    return NULL;
+  strcpy(buffer,"@");
+  return buffer;
+}
+
+/* Change current directory, assuming RISC OS format */
+int chdir(const char *buffer)
+{
+  if (_swix(OS_FSControl,_INR(0,1), 0, buffer))
+    return 1;
+  return 0;
+}
+
+/* Change current directory, assuming RISC OS format */
+int mkdir(const char *buffer, int mode)
+{
+  if (_swix(OS_File,_INR(0,1)|_IN(4), 8, buffer, 0))
+    return 1;
+  return 0;
+}
+
+/* RISC OS routine to set the type of a file */
+void settype(char *filename, int type)
+{
+  _swix(OS_File,_INR(0,2), 18, filename, type);
+}
+#endif

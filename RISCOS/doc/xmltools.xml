@@ -1,0 +1,305 @@
+<?xml version="1.0"?>
+<!DOCTYPE riscos-prm PUBLIC "-//Gerph//DTD PRM documentation 1.00//EN" 
+                            "http://www.movspclr.co.uk/dtd/100/prm.dtd">
+
+<riscos-prm doc-group="Library tools">
+<chapter title="XML tools">
+<section title="Introduction and Overview">
+<p>The XML tools are ports of the LibXML2, LibXSLT and XSLDBG applications.
+These are libraries originating on unix to manipulate and process XML and
+XSLT documents. These ports were created by Justin Fletcher.
+</p>
+
+<p>Filenames specified with the XML tools, unless otherwise stated, are
+in URI filename format, for example
+<filename>file:///$/hello/there.xml</filename> or
+<filename>../dir/thing.xml</filename>. URI style escaping using %xx may
+be used to embed characters which would otherwise be illegal.</p>
+
+</section>
+
+<section title="System variables">
+<sysvar-definition name="SGML$CatalogFiles"
+                   description="Declare names of SGML catalog file definitions">
+<use>
+<p>This variable declares where SGML catalog files live. The value of the
+variable itself is a space-separated list of native filenames of SGML
+catalog files describing catalog entries. SGML catalogs are deprecated in
+favour of XML catalogs.</p>
+</use>
+
+<related>
+<!-- <reference type="command" name="Com" /> -->
+<!-- <reference type="swi" name="thingy" /> -->
+<reference type="sysvar" name="XML$CatalogFiles" />
+</related>
+
+</sysvar-definition>
+
+
+<sysvar-definition name="XML$CatalogFiles"
+                   description="Declare names of XML catalog file definitions">
+<use>
+<p>This variable declares where XML catalog files live. The value of the
+variable itself is a space-separated list of native filenames of XML
+catalog files describing catalog entries.</p>
+</use>
+
+<related>
+<!-- <reference type="command" name="Com" /> -->
+<!-- <reference type="swi" name="thingy" /> -->
+<reference type="sysvar" name="SGML$CatalogFiles" />
+</related>
+
+</sysvar-definition>
+</section>
+
+<section title="*Commands">
+<command-definition name="XMLCatalog"
+                    description="Command line tool to parse and manipulate XML or SGML catalog files.">
+<syntax>
+ <optional alternates="true">
+  <switch name="shell" />
+  <switch name="create" />
+  <switch name="add">
+   <userreplace>type</userreplace>
+   <userreplace>original</userreplace>
+   <userreplace>replacement</userreplace>
+  </switch>
+  <switch name="del">
+   <userreplace>values</userreplace>
+  </switch>
+  <switch name="noout" />
+  <switch name="verbose" />
+ </optional>
+ <optional><userreplace>catalog-file</userreplace></optional>
+ <optional><userreplace>entities</userreplace></optional>
+</syntax>
+
+<parameter switch="shell">
+ Run a shell allowing interactive queries on catalog file</parameter>
+<parameter switch="create">
+ Create a new XML catalog. Outputs to stdout, ignoring
+ <userreplace>filename</userreplace> unless <switch name="noout" /> is
+ used, in which case it creates a new catalog file
+ <userreplace>filename</userreplace>.
+</parameter>
+<parameter switch="add">
+ Add an entry to catalog file <userreplace>filename</userreplace>.
+ <list>
+  <item>
+   <p>
+    <userreplace>type</userreplace> indicates the type of entry.
+    Possible types are 'public', 'system', 'rewriteSystem', 'delegatePublic'
+    and 'delegateSystem'.
+   </p>
+  </item>
+  <item>
+   <p>
+    <userreplace>orig</userreplace> is the original reference to be
+    replaced
+   </p>
+  </item>
+  <item>
+   <p>
+    <userreplace>replace</userreplace> is the URI of the replacement 
+    entity to be used. The <switch name="add" /> option will not overwrite
+    <userreplace>filename</userreplace>, outputing to stdout, unless
+    <switch name="noout" /> is used. This switch will always take three
+    parameters even if some of the XML catalog constructs will have only a
+    single argument.
+   </p>
+  </item>
+ </list>
+ 
+ <p>
+  If this switch option is used following the <switch name="sgml" /> switch,
+  only a single argument, a <userreplace>filename</userreplace>, is used.
+  This is used to add the name of a catalog file to an SGML supercatalog, a
+  file that contains references to other included SGML catalog files.
+ </p>
+</parameter>
+
+<parameter switch="del">
+ Remove entries from the catalog file <userreplace>filename</userreplace>
+ matching <userreplace>'values'</userreplace>. This switch will not
+ overwrite <userreplace>filename</userreplace>, outputing to
+ stdout, unless <switch name="noout" /> is used.
+</parameter>
+<parameter switch="noout">
+ Save output to the named file rather than outputing to stdout.
+</parameter>
+<parameter switch="verbose">
+ output debugging information.
+</parameter>
+
+<use>
+<p>xmlcatalog is a command line application allowing users to monitor and
+manipulate XML and SGML catalogs. It is included in libxml2.</p>
+
+<p>Its functions can be invoked from a single command from the command line,
+or it can perform multiple functions in interactive mode. It can operate on
+both XML and SGML files.</p>
+
+<p>
+<value-table head-number="Command" head-value="Meaning">
+<value number="public &lt;PublicID&gt;">
+Execute a public identifier lookup of the catalog entry for
+<userreplace>PublicID</userreplace>. The corresponding entry will be
+output to the command line.
+</value>
+<value number="system &lt;SystemID&gt;">
+Execute a public identifier lookup of the catalog entry for
+<userreplace>SystemID</userreplace>. The corresponding entry will be output
+to the command line.</value>
+
+<value number="add &lt;type&gt; &lt;orig&gt; &lt;replace&gt;">
+Add an entry to the catalog file. <userreplace>type</userreplace> indicates
+the type of entry. Possible types are 'public', 'system', 'rewriteSystem',
+'delegatePublic' and 'delegateSystem'. <userreplace>orig</userreplace> is
+the original reference to  be replaced, and
+<userreplace>replace</userreplace> is the URI of the replacement entity to
+be used. </value>
+
+<value number="del &lt;values&gt;">.
+Remove the catalog entry corresponding to <userreplace>values</userreplace>
+</value>
+
+<value number="dump">Print the current catalog</value>
+
+<value number="debug">Print debugging statements showing the steps
+xmlcatalog is executing</value>
+
+<value number="quiet">Stop printing debugging statements</value>
+
+<value number="exit">Quit the shell</value>
+</value-table>
+</p>
+
+</use>
+
+<related>
+<reference type="command" name="XMLLint" />
+<!-- <reference type="swi" name="thingy" /> -->
+<!-- <reference type="vector" name="bingleV" /> -->
+</related>
+
+</command-definition>
+
+
+<command-definition name="XMLLint"
+                    description="Parse the XML files and output the result of the parsing">
+<syntax>
+ <optional><switch name="version" /></optional>
+ <optional><switch name="debug" /></optional>
+ <optional><switch name="shell" /></optional>
+ <optional><switch name="debugent" /></optional>
+ <optional><switch name="copy" /></optional>
+ <optional><switch name="recover" /></optional>
+ <optional><switch name="noent" /></optional>
+ <optional><switch name="noout" /></optional>
+ <optional><switch name="htmlout" /></optional>
+ <optional><switch name="nowrap" /></optional>
+ <optional><switch name="valid" /></optional>
+ <optional><switch name="postvalid" /></optional>
+ <optional><switch name="dtdvalid" /><userreplace>URL</userreplace></optional>
+ <optional><switch name="timing" /></optional>
+ <optional><switch name="output" /><userreplace>file</userreplace></optional>
+ <optional><switch name="repeat" /></optional>
+ <optional><switch name="insert" /></optional>
+ <optional><switch name="sgml" /></optional>
+ <optional><switch name="html" /></optional>
+ <optional><switch name="push" /></optional>
+ <optional><switch name="nowarnings" /></optional>
+ <optional><switch name="noblanks" /></optional>
+ <optional><switch name="format" /></optional>
+ <optional><switch name="testIO" /></optional>
+ <optional><switch name="encode" /><userreplace>encoding</userreplace></optional>
+ <optional><switch name="catalogs" /></optional>
+ <optional><switch name="nocatalogs" /></optional>
+ <optional><switch name="auto" /></optional>
+ <optional><switch name="xinclude" /></optional>
+ <optional><switch name="loaddtd" /></optional>
+ <optional><switch name="dtdattr" /></optional>
+ <optional><switch name="dropdtd" /></optional>
+ <optional><switch name="throwback" /></optional>
+</syntax>
+
+<parameter switch="version">display the version of the XML library used</parameter>
+<parameter switch="debug">dump a debug tree of the in-memory document</parameter>
+<parameter switch="shell">run a navigating shell</parameter>
+<parameter switch="debugent">debug the entities defined in the document</parameter>
+<parameter switch="copy">used to test the internal copy implementation</parameter>
+<parameter switch="recover">output what was parsable on broken XML documents</parameter>
+<parameter switch="noent">substitute entity references by their value</parameter>
+<parameter switch="noout">don't output the result tree</parameter>
+<parameter switch="htmlout">output results as HTML</parameter>
+<parameter switch="nowrap">do not put HTML doc wrapper</parameter>
+<parameter switch="valid">validate the document in addition to std well-formed check</parameter>
+<parameter switch="postvalid">do a posteriori validation, i.e after parsing</parameter>
+<parameter switch="dtdvalid" name="URL">do a posteriori validation against a given DTD</parameter>
+<parameter switch="timing">print some timings</parameter>
+<parameter switch="output" name="file">save output to a given file</parameter>
+<parameter switch="repeat">repeat 100 times, for timing or profiling</parameter>
+<parameter switch="insert">ad-hoc test for valid insertions</parameter>
+<parameter switch="sgml">use the DocBook SGML parser</parameter>
+<parameter switch="html">use the HTML parser</parameter>
+<parameter switch="push">use the push mode of the parser</parameter>
+<parameter switch="nowarning">do not emit warnings from parser/validator</parameter>
+<parameter switch="noblanks">drop (ignorable?) blanks spaces</parameter>
+<parameter switch="format">reformat/reindent the input</parameter>
+<parameter switch="testIO">test user I/O support</parameter>
+<parameter switch="encode" name="encoding">output in the given encoding</parameter>
+<parameter switch="catalogs">use SGML catalogs from SGML$CatalogFiles</parameter>
+<parameter switch="nocatalog">deactivate all catalogs</parameter>
+<parameter switch="auto">generate a small doc on the fly</parameter>
+<parameter switch="xinclude">do XInclude processing</parameter>
+<parameter switch="loaddtd">fetch external DTD</parameter>
+<parameter switch="dtdattr">loaddtd and populate the tree with inherited attributes</parameter>
+<parameter switch="dropdtd">remove DOCTYPE declaration from input documents</parameter>
+<parameter switch="throwback">provide feedback to external tasks</parameter>
+
+<use>
+<p>xmllint is a command line application allowing users to process XML. It
+is included in libxml2.</p>
+
+</use>
+
+<related>
+<reference type="command" name="XMLCatalog" />
+<!-- <reference type="swi" name="thingy" /> -->
+<!-- <reference type="vector" name="bingleV" /> -->
+</related>
+
+</command-definition>
+</section>
+
+</chapter>
+
+<!-- MetaData -->
+<meta>
+ <maintainer>
+  <email name="Justin Fletcher" address="justin.fletcher@ntlworld.com" />
+ </maintainer>
+ <disclaimer>
+  <p>
+   This document covers the RISC OS version of the XML tools from LibXML2,
+   LibXSLT and XSLDebug.<br />
+   It is maintained exclusively by the Justin Fletcher, based on the
+   documentation originally written by the authors of the libraries.
+  </p>
+ </disclaimer>
+
+ <history>
+  <revision number="1" date="15 Dec 2002" author="JRF" title="Initial version">
+  </revision>
+  <revision number="2" date="15 Jan 2002" author="JRF" title="LibXML 2.4.13">
+   <change>XMLLint: -output, and -dropdtd documented</change>
+   <change>Added note about filename usage</change>
+  </revision>
+ </history>
+ <related>
+<!--   <reference type="document" href="doclocation" name="docname" /> -->
+ </related>
+</meta>
+</riscos-prm>

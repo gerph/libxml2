@@ -1,0 +1,86 @@
+| !MkRelease
+| Build a release
+Dir <Obey$Dir>
+
+x wipe diffs ~c~vfr
+x wipe Src   ~c~vfr
+
+Obey <Obey$Dir>.!~Setup
+echo [Diff files]
+Obey !~Diff
+| 
+cdir Src
+cdir Src.doc
+cdir Src.o
+cdir XML
+cdir XML.Help
+| 
+echo [Copy source]
+copy RISCOS.c Src.c ~C~VFR~D
+copy RISCOS.h Src.h ~C~VFR~D
+copy RISCOS.include Src.include ~C~VFR~D
+copy RISCOS.Makefile Src.Makefile ~C~VFR~D
+copy RISCOS.utils Src.utils ~C~VFR~D
+
+| Build the binaries
+echo [Build binaries]
+dir RISCOS
+amu xmlLint
+amu xmlCatalog
+
+| Now create the directories into which we will install them
+copy xmlLint    ^.XML.xmlLint    ~C~VF~Q
+copy xmlCatalog ^.XML.xmlCatalog ~C~VF~Q
+|
+| Hope like hell that we've actually got an xsltproc by now
+xsltproc -output doc/xmltools.html http://www.movspclr.co.uk/dtd/100/prm-html.xsl doc/xmltools.xml
+
+| Return to our root
+dir ^
+
+| Copy the documentation
+echo [Copy documentation]
+Alias apply Copy <ThisOriginal>.doc.%%0 Src.doc.* ~C~V~DF
+|
+apply API*
+apply architecture/html
+apply bugs/html
+apply catalog/html
+apply contribs/html
+apply docs/html
+apply DOM/gif
+apply DOM/html
+apply downloads/html
+apply encoding/html
+apply entities/html
+apply example/html
+apply FAQ/html
+apply help/html
+apply html
+remove Src.doc.html.index/sgml
+apply index/html
+apply interface/html
+apply intro/html
+apply library/html
+apply libxml/gif
+apply namespaces/html
+apply news/html
+apply redhat/gif
+apply smallfootonly/gif
+apply structure/gif
+apply threads/html
+apply tree/html
+apply upgrade/html
+apply xml/html
+apply XMLinfo/html
+apply xmlcatalog_man/html
+apply xmldtd/html
+apply xmlio/html
+apply xmlmem/html
+apply XSLT/html
+apply w3c/png
+
+| Final stage generate archives
+Obey <Obey$Dir>.!MkReleaseArchives
+
+Echo [Built release]

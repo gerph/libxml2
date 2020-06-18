@@ -1,0 +1,21 @@
+| Test that the HTML parts work
+/utils.leaf   Test$Leaf   %0
+/utils.parent Test$Parent %0
+If "<Test$Leaf>" LEFT 1 = "/" Then Obey
+Echo Testing file <Test$Leaf>
+dir ^.Original
+Set Test$RISCOS ^.RISCOS
+
+| Convert extension to Unix-like format
+Unset Test$UnixLeaf
+If (Test$Leaf RIGHT 4) = "/htm" Then SetEval Test$UnixLeaf (Test$Leaf LEFT ((LEN Test$Leaf) - 4) + ".htm")
+If (Test$Leaf RIGHT 5) = "/html" Then SetEval Test$UnixLeaf (Test$Leaf LEFT ((LEN Test$Leaf) - 5) + ".html")
+| Conversion done!
+
+do /^.RISCOS.testHTML --push --sax ./test/HTML/<Test$UnixLeaf> > <Test$RISCOS>.result.<Test$Leaf>/sax 2> <Test$RISCOS>.error.<Test$Leaf>
+do gnudiff    result.html.<Test$Leaf>/sax <Test$RISCOS>.result.<Test$Leaf>/sax
+
+| Tidy up
+remove <Test$RISCOS>.result.<Test$Leaf>/sax
+remove <Test$RISCOS>.error.<Test$Leaf>
+back

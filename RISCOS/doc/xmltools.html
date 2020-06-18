@@ -1,0 +1,214 @@
+<html><!--
+  Auto-generated using XSLT stylesheet created by Justin Fletcher.
+  
+  This document was created with the HTML stylesheet updated (11 Apr 2002).
+-->
+<head><meta content="text/html; charset=UTF-8" http-equiv="Content-Type"><title>Library tools : XML tools</title></head><body bgcolor="white" text="black" link="blue" alink="red" vlink="darkblue"><hr><h1>XML tools</h1><hr><dl><dt><h2>Contents</h2></dt><dd><ul><li><a href="#section_introduction_and_overview">Introduction and Overview</a></li><li><a href="#section_system_variables">System variables</a><ul><li><a href="#sysvar_sgml_catalogfiles">SGML$CatalogFiles</a></li><li><a href="#sysvar_xml_catalogfiles">XML$CatalogFiles</a></li></ul></li><li><a href="#section_commands">*Commands</a><ul><li><a href="#command_xmlcatalog">XMLCatalog</a></li><li><a href="#command_xmllint">XMLLint</a></li></ul></li></ul></dd></dl><hr><dl><dt><h2><a name="section_introduction_and_overview">Introduction and Overview</a></h2></dt><dd><dl><dd><p>The XML tools are ports of the LibXML2, LibXSLT and XSLDBG applications.
+These are libraries originating on unix to manipulate and process XML and
+XSLT documents. These ports were created by Justin Fletcher.
+</p></dd></dl></dd><dd><dl><dd><p>Filenames specified with the XML tools, unless otherwise stated, are
+in URI filename format, for example
+<code>file:///$/hello/there.xml</code> or
+<code>../dir/thing.xml</code>. URI style escaping using %xx may
+be used to embed characters which would otherwise be illegal.</p></dd></dl></dd></dl><hr><dl><dt><h2><a name="section_system_variables">System variables</a></h2></dt><dd><dl><dd><hr><h2 align="right"><a name="sysvar_sgml_catalogfiles">SGML$CatalogFiles</a></h2><dd>Declare names of SGML catalog file definitions</dd><dt><h5>Use</h5></dt><dd>
+<p>This variable declares where SGML catalog files live. The value of the
+variable itself is a space-separated list of native filenames of SGML
+catalog files describing catalog entries. SGML catalogs are deprecated in
+favour of XML catalogs.</p>
+</dd><dt><h5>Related system variables</h5></dt><dd><a href="#sysvar_xml_catalogfiles">XML$CatalogFiles</a></dd></dd></dl></dd><dd><dl><dd><hr><h2 align="right"><a name="sysvar_xml_catalogfiles">XML$CatalogFiles</a></h2><dd>Declare names of XML catalog file definitions</dd><dt><h5>Use</h5></dt><dd>
+<p>This variable declares where XML catalog files live. The value of the
+variable itself is a space-separated list of native filenames of XML
+catalog files describing catalog entries.</p>
+</dd><dt><h5>Related system variables</h5></dt><dd><a href="#sysvar_sgml_catalogfiles">SGML$CatalogFiles</a></dd></dd></dl></dd></dl><hr><dl><dt><h2><a name="section_commands">*Commands</a></h2></dt><dd><dl><dd><hr><h2 align="right"><a name="command_xmlcatalog">*XMLCatalog</a></h2><dd>Command line tool to parse and manipulate XML or SGML catalog files.</dd><dt><h5>Syntax</h5></dt><dd><code>*XMLCatalog
+ [-shell | -create | -add 
+   <i>&lt;type&gt;</i>
+   <i>&lt;original&gt;</i>
+   <i>&lt;replacement&gt;</i>
+   | -del 
+   <i>&lt;values&gt;</i>
+   | -noout | -verbose]
+ [<i>&lt;catalog-file&gt;</i>]
+ [<i>&lt;entities&gt;</i>]
+</code></dd><dt><h5>Parameters</h5></dt><dd><table summary="Command parameters" border="0"><tr><td valign="top"><code>
+            -shell </code></td><td valign="top">-</td><td valign="top">
+ Run a shell allowing interactive queries on catalog file</td></tr><tr><td valign="top"><code>
+            -create </code></td><td valign="top">-</td><td valign="top">
+ Create a new XML catalog. Outputs to stdout, ignoring
+ <i>&lt;filename&gt;</i> unless -noout is
+ used, in which case it creates a new catalog file
+ <i>&lt;filename&gt;</i>.
+</td></tr><tr><td valign="top"><code>
+            -add </code></td><td valign="top">-</td><td valign="top">
+ Add an entry to catalog file <i>&lt;filename&gt;</i>.
+ <ul>
+  <li>
+    <i>&lt;type&gt;</i> indicates the type of entry.
+    Possible types are 'public', 'system', 'rewriteSystem', 'delegatePublic'
+    and 'delegateSystem'.
+   </li>
+  <li>
+    <i>&lt;orig&gt;</i> is the original reference to be
+    replaced
+   </li>
+  <li>
+    <i>&lt;replace&gt;</i> is the URI of the replacement 
+    entity to be used. The -add option will not overwrite
+    <i>&lt;filename&gt;</i>, outputing to stdout, unless
+    -noout is used. This switch will always take three
+    parameters even if some of the XML catalog constructs will have only a
+    single argument.
+   </li>
+ </ul>
+ 
+ <p>
+  If this switch option is used following the -sgml switch,
+  only a single argument, a <i>&lt;filename&gt;</i>, is used.
+  This is used to add the name of a catalog file to an SGML supercatalog, a
+  file that contains references to other included SGML catalog files.
+ </p>
+</td></tr><tr><td valign="top"><code>
+            -del </code></td><td valign="top">-</td><td valign="top">
+ Remove entries from the catalog file <i>&lt;filename&gt;</i>
+ matching <i>&lt;'values'&gt;</i>. This switch will not
+ overwrite <i>&lt;filename&gt;</i>, outputing to
+ stdout, unless -noout is used.
+</td></tr><tr><td valign="top"><code>
+            -noout </code></td><td valign="top">-</td><td valign="top">
+ Save output to the named file rather than outputing to stdout.
+</td></tr><tr><td valign="top"><code>
+            -verbose </code></td><td valign="top">-</td><td valign="top">
+ output debugging information.
+</td></tr></table></dd><dt><h5>Use</h5></dt><dd>
+<p>xmlcatalog is a command line application allowing users to monitor and
+manipulate XML and SGML catalogs. It is included in libxml2.</p>
+
+<p>Its functions can be invoked from a single command from the command line,
+or it can perform multiple functions in interactive mode. It can operate on
+both XML and SGML files.</p>
+
+<p>
+<table summary="Opaque table of values" border="0"><tr><th align="right" valign="bottom">Command</th><th align="left" valign="bottom">Meaning</th></tr>
+<tr><td valign="top" align="right">public &lt;PublicID&gt;</td><td valign="top" align="left">
+Execute a public identifier lookup of the catalog entry for
+<i>&lt;PublicID&gt;</i>. The corresponding entry will be
+output to the command line.
+</td></tr>
+<tr><td valign="top" align="right">system &lt;SystemID&gt;</td><td valign="top" align="left">
+Execute a public identifier lookup of the catalog entry for
+<i>&lt;SystemID&gt;</i>. The corresponding entry will be output
+to the command line.</td></tr>
+
+<tr><td valign="top" align="right">add &lt;type&gt; &lt;orig&gt; &lt;replace&gt;</td><td valign="top" align="left">
+Add an entry to the catalog file. <i>&lt;type&gt;</i> indicates
+the type of entry. Possible types are 'public', 'system', 'rewriteSystem',
+'delegatePublic' and 'delegateSystem'. <i>&lt;orig&gt;</i> is
+the original reference to  be replaced, and
+<i>&lt;replace&gt;</i> is the URI of the replacement entity to
+be used. </td></tr>
+
+<tr><td valign="top" align="right">del &lt;values&gt;</td><td valign="top" align="left">.
+Remove the catalog entry corresponding to <i>&lt;values&gt;</i>
+</td></tr>
+
+<tr><td valign="top" align="right">dump</td><td valign="top" align="left">Print the current catalog</td></tr>
+
+<tr><td valign="top" align="right">debug</td><td valign="top" align="left">Print debugging statements showing the steps
+xmlcatalog is executing</td></tr>
+
+<tr><td valign="top" align="right">quiet</td><td valign="top" align="left">Stop printing debugging statements</td></tr>
+
+<tr><td valign="top" align="right">exit</td><td valign="top" align="left">Quit the shell</td></tr>
+</table>
+</p>
+
+</dd><dt><h5>Related * commands</h5></dt><dd><a href="#command_xmllint">*XMLLint</a></dd></dd></dl></dd><dd><dl><dd><hr><h2 align="right"><a name="command_xmllint">*XMLLint</a></h2><dd>Parse the XML files and output the result of the parsing</dd><dt><h5>Syntax</h5></dt><dd><code>*XMLLint
+ [-version]
+ [-debug]
+ [-shell]
+ [-debugent]
+ [-copy]
+ [-recover]
+ [-noent]
+ [-noout]
+ [-htmlout]
+ [-nowrap]
+ [-valid]
+ [-postvalid]
+ [-dtdvalid<i>&lt;URL&gt;</i>]
+ [-timing]
+ [-output<i>&lt;file&gt;</i>]
+ [-repeat]
+ [-insert]
+ [-sgml]
+ [-html]
+ [-push]
+ [-nowarnings]
+ [-noblanks]
+ [-format]
+ [-testIO]
+ [-encode<i>&lt;encoding&gt;</i>]
+ [-catalogs]
+ [-nocatalogs]
+ [-auto]
+ [-xinclude]
+ [-loaddtd]
+ [-dtdattr]
+ [-dropdtd]
+ [-throwback]
+</code></dd><dt><h5>Parameters</h5></dt><dd><table summary="Command parameters" border="0"><tr><td valign="top"><code>
+            -version </code></td><td valign="top">-</td><td valign="top">display the version of the XML library used</td></tr><tr><td valign="top"><code>
+            -debug </code></td><td valign="top">-</td><td valign="top">dump a debug tree of the in-memory document</td></tr><tr><td valign="top"><code>
+            -shell </code></td><td valign="top">-</td><td valign="top">run a navigating shell</td></tr><tr><td valign="top"><code>
+            -debugent </code></td><td valign="top">-</td><td valign="top">debug the entities defined in the document</td></tr><tr><td valign="top"><code>
+            -copy </code></td><td valign="top">-</td><td valign="top">used to test the internal copy implementation</td></tr><tr><td valign="top"><code>
+            -recover </code></td><td valign="top">-</td><td valign="top">output what was parsable on broken XML documents</td></tr><tr><td valign="top"><code>
+            -noent </code></td><td valign="top">-</td><td valign="top">substitute entity references by their value</td></tr><tr><td valign="top"><code>
+            -noout </code></td><td valign="top">-</td><td valign="top">don't output the result tree</td></tr><tr><td valign="top"><code>
+            -htmlout </code></td><td valign="top">-</td><td valign="top">output results as HTML</td></tr><tr><td valign="top"><code>
+            -nowrap </code></td><td valign="top">-</td><td valign="top">do not put HTML doc wrapper</td></tr><tr><td valign="top"><code>
+            -valid </code></td><td valign="top">-</td><td valign="top">validate the document in addition to std well-formed check</td></tr><tr><td valign="top"><code>
+            -postvalid </code></td><td valign="top">-</td><td valign="top">do a posteriori validation, i.e after parsing</td></tr><tr><td valign="top"><code>
+            -dtdvalid <i>&lt;URL&gt;</i></code></td><td valign="top">-</td><td valign="top">do a posteriori validation against a given DTD</td></tr><tr><td valign="top"><code>
+            -timing </code></td><td valign="top">-</td><td valign="top">print some timings</td></tr><tr><td valign="top"><code>
+            -output <i>&lt;file&gt;</i></code></td><td valign="top">-</td><td valign="top">save output to a given file</td></tr><tr><td valign="top"><code>
+            -repeat </code></td><td valign="top">-</td><td valign="top">repeat 100 times, for timing or profiling</td></tr><tr><td valign="top"><code>
+            -insert </code></td><td valign="top">-</td><td valign="top">ad-hoc test for valid insertions</td></tr><tr><td valign="top"><code>
+            -sgml </code></td><td valign="top">-</td><td valign="top">use the DocBook SGML parser</td></tr><tr><td valign="top"><code>
+            -html </code></td><td valign="top">-</td><td valign="top">use the HTML parser</td></tr><tr><td valign="top"><code>
+            -push </code></td><td valign="top">-</td><td valign="top">use the push mode of the parser</td></tr><tr><td valign="top"><code>
+            -nowarning </code></td><td valign="top">-</td><td valign="top">do not emit warnings from parser/validator</td></tr><tr><td valign="top"><code>
+            -noblanks </code></td><td valign="top">-</td><td valign="top">drop (ignorable?) blanks spaces</td></tr><tr><td valign="top"><code>
+            -format </code></td><td valign="top">-</td><td valign="top">reformat/reindent the input</td></tr><tr><td valign="top"><code>
+            -testIO </code></td><td valign="top">-</td><td valign="top">test user I/O support</td></tr><tr><td valign="top"><code>
+            -encode <i>&lt;encoding&gt;</i></code></td><td valign="top">-</td><td valign="top">output in the given encoding</td></tr><tr><td valign="top"><code>
+            -catalogs </code></td><td valign="top">-</td><td valign="top">use SGML catalogs from SGML$CatalogFiles</td></tr><tr><td valign="top"><code>
+            -nocatalog </code></td><td valign="top">-</td><td valign="top">deactivate all catalogs</td></tr><tr><td valign="top"><code>
+            -auto </code></td><td valign="top">-</td><td valign="top">generate a small doc on the fly</td></tr><tr><td valign="top"><code>
+            -xinclude </code></td><td valign="top">-</td><td valign="top">do XInclude processing</td></tr><tr><td valign="top"><code>
+            -loaddtd </code></td><td valign="top">-</td><td valign="top">fetch external DTD</td></tr><tr><td valign="top"><code>
+            -dtdattr </code></td><td valign="top">-</td><td valign="top">loaddtd and populate the tree with inherited attributes</td></tr><tr><td valign="top"><code>
+            -dropdtd </code></td><td valign="top">-</td><td valign="top">remove DOCTYPE declaration from input documents</td></tr><tr><td valign="top"><code>
+            -throwback </code></td><td valign="top">-</td><td valign="top">provide feedback to external tasks</td></tr></table></dd><dt><h5>Use</h5></dt><dd>
+<p>xmllint is a command line application allowing users to process XML. It
+is included in libxml2.</p>
+
+</dd><dt><h5>Related * commands</h5></dt><dd><a href="#command_xmlcatalog">*XMLCatalog</a></dd></dd></dl></dd></dl><hr></body>
+
+
+
+<dl><dt><h2><a name="metadata">Document information</a></h2></dt><dd><table summary="Meta information table"><tr><th align="right" valign="top">Maintainer(s):</th><td>
+  Justin Fletcher &lt;<a href="mailto:justin.fletcher@ntlworld.com">justin.fletcher@ntlworld.com</a>&gt;
+ </td></tr><tr><th align="right" valign="top">History:</th><td><table border="0" summary="Document history"><tr><th align="left">Revision</th><th align="left">Date</th><th align="left">Author</th><th align="left">Changes</th></tr>
+  <tr><td valign="top">1</td><td valign="top">15 Dec 2002</td><td valign="top">JRF</td><td valign="top"><strong>Initial version</strong><br></td></tr>
+  <tr><td valign="top">2</td><td valign="top">15 Jan 2002</td><td valign="top">JRF</td><td valign="top"><strong>LibXML 2.4.13</strong><br><ul>
+   <li>XMLLint: -output, and -dropdtd documented</li>
+   <li>Added note about filename usage</li>
+  </ul></td></tr>
+ </table></td></tr><tr><th align="right" valign="top">Related:</th><td>None</td></tr><tr><th align="right" valign="top">Disclaimer:</th><td align="left" valign="top">
+  <p>
+   This document covers the RISC OS version of the XML tools from LibXML2,
+   LibXSLT and XSLDebug.<br>
+   It is maintained exclusively by the Justin Fletcher, based on the
+   documentation originally written by the authors of the libraries.
+  </p>
+ </td></tr></table></dd></dl><hr></html>

@@ -1,0 +1,33 @@
+|
+| Do the final stage of the build - that archives
+
+| Copy the help file
+Copy <ThisRISCOS>.doc.xmltools/html @.xmltools/html ~C~VF~D
+
+| Generate the Help files for XML catalog and XML lint
+Echo [Generate help files]
+Dir XML
+| [long alias to extract the version number from the command]
+Set Alias$GetVersion do perl ^.!~GetVersion/pl %%0 %%1 %%*2
+| [long alias to convert unix-style help to RISC OS help]
+Set Alias$GetHelp perl ^.!~GetHelp/pl %%*0
+GetVersion xmlCatalog        XMLCatalog > Help.xmlCatalog
+GetVersion xmlLint*--version XMLLint    > Help.xmlLint
+GetHelp    xmlCatalog >> Help.xmlCatalog
+GetHelp    xmlLint    >> Help.xmlLint
+| And back up
+Dir ^
+
+| Now archive the source
+echo [Archive]
+remove src-riscos-<LibraryName>-<ThisVersion>/zip
+Zip -9r src-riscos-<LibraryName>-<ThisVersion>/zip Src diffs original.COPYING
+
+| And the binaries
+remove xmlcatalog-<XMLCatalog$FileVersion>/zip
+remove xmllint-<XMLLint$FileVersion>/zip
+Zip -9r xmlcatalog-<XMLCatalog$FileVersion>/zip XML.xmlCatalog XML.Help.xmlCatalog xmltools/html original.COPYING
+Zip -9r xmllint-<XMLLint$FileVersion>/zip       XML.xmlLint    XML.Help.xmlLint    xmltools/html original.COPYING
+
+| Remove the temporary html file
+remove xmltools/html
