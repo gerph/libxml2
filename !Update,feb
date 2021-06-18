@@ -132,6 +132,7 @@ apply include.libxml.h.xmlversion
 apply include.libxml.h.xpath
 apply include.libxml.h.xpathInternals
 apply include.libxml.h.xpointer
+apply include.libxml.h.xmlwriter
 
 | Final bits
 Copy <LastRISCOS>.Makefile <ThisRISCOS>.Makefile ~C~V~DF

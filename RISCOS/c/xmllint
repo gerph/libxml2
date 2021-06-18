@@ -7,7 +7,7 @@
  */
 
 /* Justin's port version */
-#define PORTVERSION "1.29"
+#define PORTVERSION "1.30"
 
 #include "libxml.h"
 #include <stdlib.h>
@@ -136,6 +136,7 @@ static int repeat = 0;
 static int insert = 0;
 #ifdef  LIBXML_HTML_ENABLED
 static int html = 0;
+static int xmlout = 0;
 #endif
 static int htmlout = 0;
 #ifdef LIBXML_PUSH_ENABLED
@@ -161,6 +162,7 @@ static int nocatalogs = 0;
 #endif
 #ifdef LIBXML_READER_ENABLED
 static int stream = 0;
+static int walker = 0;
 #endif /* LIBXML_READER_ENABLED */
 static int chkregister = 0;
 #ifdef LIBXML_SAX1_ENABLED
@@ -303,89 +305,275 @@ endTimer(char *format, ...)
 #include <ctype.h>
 #include <stdarg.h>
 #include <limits.h>
-#include "libxml/riscos.h"
+#include <libxml/riscos.h>
 #include "throwback.h"
 
 int throwback=0;
 
+/**
+ * xmlParserPrintFileContext:
+ * @input:  an xmlParserInputPtr input
+ *
+ * Displays current context within the input content for error tracking
+ */
+
+static void
+xmlParserPrintFileContextInternal(xmlParserInputPtr input ,
+		xmlGenericErrorFunc channel, void *data ) {
+    const xmlChar *cur, *base;
+    unsigned int n, col;	/* GCC warns if signed, because compared with sizeof() */
+    xmlChar  content[81]; /* space for 80 chars + line terminator */
+    xmlChar *ctnt;
+
+    if (input == NULL) return;
+    cur = input->cur;
+    base = input->base;
+    /* skip backwards over any end-of-lines */
+    while ((cur > base) && ((*(cur) == '\n') || (*(cur) == '\r'))) {
+	cur--;
+    }
+    n = 0;
+    /* search backwards for beginning-of-line (to max buff size) */
+    while ((n++ < (sizeof(content)-1)) && (cur > base) &&
+    	   (*(cur) != '\n') && (*(cur) != '\r'))
+        cur--;
+    if ((*(cur) == '\n') || (*(cur) == '\r')) cur++;
+    /* calculate the error position in terms of the current position */
+    col = input->cur - cur;
+    /* search forward for end-of-line (to max buff size) */
+    n = 0;
+    ctnt = content;
+    /* copy selected text to our buffer */
+    while ((*cur != 0) && (*(cur) != '\n') &&
+    	   (*(cur) != '\r') && (n < sizeof(content)-1)) {
+		*ctnt++ = *cur++;
+	n++;
+    }
+    *ctnt = 0;
+    /* print out the selected text */
+    channel(data ,"%s\n", content);
+    /* create blank line with problem pointer */
+    n = 0;
+    ctnt = content;
+    /* (leave buffer space for pointer + line terminator) */
+    while ((n<col) && (n++ < sizeof(content)-2) && (*ctnt != 0)) {
+	if (*(ctnt) != '\t')
+	    *(ctnt) = ' ';
+	ctnt++;
+    }
+    *ctnt++ = '^';
+    *ctnt = 0;
+    channel(data ,"%s\n", content);
+}
+
+/**
+ * xmlReportError:
+ * @err: the error
+ * @ctx: the parser context or NULL
+ * @str: the formatted error message
+ *
+ * Report an erro with its context, replace the 4 old error/warning
+ * routines.
+ */
+static void
+xmlReportError(xmlErrorPtr err, xmlParserCtxtPtr ctxt, const char *str,
+               xmlGenericErrorFunc channel, void *data)
+{
+    char *file = NULL;
+    int line = 0;
+    int code = -1;
+    int domain;
+    const xmlChar *name = NULL;
+    xmlNodePtr node;
+    xmlErrorLevel level;
+    xmlParserInputPtr input = NULL;
+    xmlParserInputPtr cur = NULL;
+
+    if (err == NULL)
+        return;
+
+    if (channel == NULL) {
+	channel = xmlGenericError;
+	data = xmlGenericErrorContext;
+    }
+    file = err->file;
+    line = err->line;
+    code = err->code;
+    domain = err->domain;
+    level = err->level;
+    node = err->node;
+
+    if (code == XML_ERR_OK)
+        return;
+
+    if ((node != NULL) && (node->type == XML_ELEMENT_NODE))
+        name = node->name;
+
+    /*
+     * Maintain the compatibility with the legacy error handling
+     */
+    if (ctxt != NULL) {
+        input = ctxt->input;
+        if ((input != NULL) && (input->filename == NULL) &&
+            (ctxt->inputNr > 1)) {
+            cur = input;
+            input = ctxt->inputTab[ctxt->inputNr - 2];
+        }
+        if (input != NULL) {
+            if (input->filename)
+                channel(data, "%s:%d: ", input->filename, input->line);
+            else if ((line != 0) && (domain == XML_FROM_PARSER))
+                channel(data, "Entity: line %d: ", input->line);
+        }
+    } else {
+        if (file != NULL)
+            channel(data, "%s:%d: ", file, line);
+        else if ((line != 0) && (domain == XML_FROM_PARSER))
+            channel(data, "Entity: line %d: ", line);
+    }
+    if (name != NULL) {
+        channel(data, "element %s: ", name);
+    }
+    if (code == XML_ERR_OK)
+        return;
+    switch (domain) {
+        case XML_FROM_PARSER:
+            channel(data, "parser ");
+            break;
+        case XML_FROM_NAMESPACE:
+            channel(data, "namespace ");
+            break;
+        case XML_FROM_DTD:
+        case XML_FROM_VALID:
+            channel(data, "validity ");
+            break;
+        case XML_FROM_HTML:
+            channel(data, "HTML parser ");
+            break;
+        case XML_FROM_MEMORY:
+            channel(data, "memory ");
+            break;
+        case XML_FROM_OUTPUT:
+            channel(data, "output ");
+            break;
+        case XML_FROM_IO:
+            channel(data, "I/O ");
+            break;
+        case XML_FROM_XINCLUDE:
+            channel(data, "XInclude ");
+            break;
+        case XML_FROM_XPATH:
+            channel(data, "XPath ");
+            break;
+        case XML_FROM_XPOINTER:
+            channel(data, "parser ");
+            break;
+        case XML_FROM_REGEXP:
+            channel(data, "regexp ");
+            break;
+        case XML_FROM_SCHEMASV:
+            channel(data, "Schemas validity ");
+            break;
+        case XML_FROM_SCHEMASP:
+            channel(data, "Schemas parser ");
+            break;
+        case XML_FROM_RELAXNGP:
+            channel(data, "Relax-NG parser ");
+            break;
+        case XML_FROM_RELAXNGV:
+            channel(data, "Relax-NG validity ");
+            break;
+        case XML_FROM_CATALOG:
+            channel(data, "Catalog ");
+            break;
+        case XML_FROM_C14N:
+            channel(data, "C14N ");
+            break;
+        case XML_FROM_XSLT:
+            channel(data, "XSLT ");
+            break;
+        default:
+            break;
+    }
+    if (code == XML_ERR_OK)
+        return;
+    switch (level) {
+        case XML_ERR_NONE:
+            channel(data, ": ");
+            break;
+        case XML_ERR_WARNING:
+            channel(data, "warning : ");
+            break;
+        case XML_ERR_ERROR:
+            channel(data, "error : ");
+            break;
+        case XML_ERR_FATAL:
+            channel(data, "error : ");
+            break;
+    }
+    if (code == XML_ERR_OK)
+        return;
+    if (str != NULL) {
+        int len;
+	len = xmlStrlen((const xmlChar *)str);
+	if ((len > 0) && (str[len - 1] != '\n'))
+	    channel(data, "%s\n", str);
+	else
+	    channel(data, "%s", str);
+    } else {
+        channel(data, "%s\n", "out of memory error");
+    }
+    if (code == XML_ERR_OK)
+        return;
+
+    if (ctxt != NULL) {
+        xmlParserPrintFileContextInternal(input, channel, data);
+        if (cur != NULL) {
+            if (cur->filename)
+                channel(data, "%s:%d: \n", cur->filename, cur->line);
+            else if ((line != 0) && (domain == XML_FROM_PARSER))
+                channel(data, "Entity: line %d: \n", cur->line);
+            xmlParserPrintFileContextInternal(cur, channel, data);
+        }
+    }
+    if ((domain == XML_FROM_XPATH) && (err->str1 != NULL) &&
+        (err->int1 < 100) &&
+	(err->int1 < xmlStrlen((const xmlChar *)err->str1))) {
+	xmlChar buf[150];
+	int i;
+
+	channel(data, "%s\n", err->str1);
+	for (i=0;i < err->int1;i++)
+	     buf[i] = ' ';
+	buf[i++] = '^';
+	buf[i] = 0;
+	channel(data, "%s\n", buf);
+    }
+}
+
 /* This is probably a lot easier now that we have a proper interface for this
    but I've not updated the code to use it yet. */
 static void
-xmllintErrorFunc(void *ctx ATTRIBUTE_UNUSED, const char *msg, ...) {
+xmllintErrorFunc(void *user ATTRIBUTE_UNUSED, xmlErrorPtr err) {
     va_list args;
+    xmlParserCtxtPtr ctxt = err->ctxt;
 
-    static char bigbuffer[4096]="";
-    static char *start=NULL;
-    char *lineend;
-    char *linestart;
-    if (start==NULL)
-      start=bigbuffer;
+    printf("Error Throwback\n");
 
-    va_start(args, msg);
-    vsprintf(start, msg, args);
-    va_end(args);
-    fprintf(stderr,"%s",start);
-
-    linestart=bigbuffer;
-
-    while ((lineend=strchr(linestart,'\n')) !=NULL)
+    if (err->file)
     {
-      char *line=linestart;
-      *lineend='\0';
-
-      while ((line=strstr(line,":"))!=NULL && !isdigit(line[1]))
-        line++;
-
-      if (line)
+      seriousness_t serious;
+      switch (err->level)
       {
-        char *file=linestart;
-        *line='\0';
-        /* line+=7; */
-        line+=1;
-        if (strchr(file,' ')==NULL)
-        {
-          char *end;
-          unsigned long lineno=strtoul(line,&end,10);
-          if (lineno!=ULONG_MAX && end[0]==':' && end[1]==' ')
-          {
-            char *error=&end[2];
-            seriousness_t serious=s_error;
-
-            /* Perform translation on filename */
-            file=riscosfilename(file);
-
-            /* printf("\n\n\nFILE: %s  LINE: %i\n",file,lineno); */
-            /* printf("ERROR: %s\n\n\n",error); */
-            if (strncmp(error,"error: ",strlen("error: "))==0)
-            {
-              error+=strlen("error: ");
-              serious=s_error;
-            }
-            else if (strncmp(error,"warning: ",strlen("warning: "))==0)
-            {
-              error+=strlen("warning: ");
-              serious=s_warning;
-            }
-            else if (strncmp(error,"validity error: ",strlen("validity error: "))==0)
-            {
-              error+=strlen("validity error: ");
-              serious=s_seriouserror;
-            }
-            else if (strncmp(error,"validity warning: ",strlen("validity warning: "))==0)
-            {
-              error+=strlen("validity warning: ");
-              serious=s_warning;
-            }
-
-            Throwback(serious,file,(int)lineno,error);
-          }
-        }
+        default:
+        case XML_ERR_NONE:         serious = s_information; break;
+        case XML_ERR_WARNING:      serious = s_warning; break;
+        case XML_ERR_ERROR:        serious = s_error; break;
+        case XML_ERR_FATAL:        serious = s_seriouserror; break;
       }
-      linestart=&lineend[1];
+      Throwback(serious,riscosfilename(err->file),err->line,err->message);
     }
-    if (linestart!=bigbuffer)
-      strcpy(bigbuffer,linestart);
-    start=bigbuffer+strlen(bigbuffer);
+    xmlReportError(err, ctxt, err->message, NULL, NULL);
 }
 #endif
 /************************************************************************
@@ -701,7 +889,7 @@ static void processNode(xmlTextReaderPtr reader) {
 
     name = xmlTextReaderConstName(reader);
     if (name == NULL)
-	name = xmlStrdup(BAD_CAST "--");
+	name = BAD_CAST "--";
 
     value = xmlTextReaderConstValue(reader);
 
@@ -736,12 +924,12 @@ static void streamFile(char *filename) {
 	if (base == (void *) MAP_FAILED)
 	    return;
 
-	input = xmlParserInputBufferCreateStatic((char *) base, info.st_size,
-	                                      XML_CHAR_ENCODING_NONE);
-	reader = xmlNewTextReader(input, filename);
+	reader = xmlReaderForMemory(base, info.st_size, filename,
+	                            NULL, options);
     } else
 #endif
-	reader = xmlNewTextReaderFilename(filename);
+	reader = xmlReaderForFile(filename, NULL, options);
+
 
     if (reader != NULL) {
 #ifdef LIBXML_VALID_ENABLED
@@ -831,6 +1019,35 @@ static void streamFile(char *filename) {
 	close(fd);
     }
 #endif
+}
+
+static void walkDoc(xmlDocPtr doc) {
+    xmlTextReaderPtr reader;
+    int ret;
+
+    reader = xmlReaderWalker(doc);
+    if (reader != NULL) {
+	if ((timing) && (!repeat)) {
+	    startTimer();
+	}
+	ret = xmlTextReaderRead(reader);
+	while (ret == 1) {
+	    if (debug)
+		processNode(reader);
+	    ret = xmlTextReaderRead(reader);
+	}
+	if ((timing) && (!repeat)) {
+	    endTimer("walking through the doc");
+	}
+	xmlFreeTextReader(reader);
+	if (ret != 0) {
+	    printf("failed to walk through the doc\n");
+	    progresult = 1;
+	}
+    } else {
+	fprintf(stderr, "Failed to crate a reader from the document\n");
+	progresult = 1;
+    }
 }
 #endif /* LIBXML_READER_ENABLED */
 
@@ -1117,6 +1334,11 @@ static void parseAndPrintFile(char *filename, xmlParserCtxtPtr rectxt) {
 	}
     }else
 #endif /* LIBXML_VALID_ENABLED */
+#ifdef LIBXML_READER_ENABLED
+    if (walker) {
+        walkDoc(doc);
+    }
+#endif /* LIBXML_READER_ENABLED */
 #ifdef LIBXML_OUTPUT_ENABLED
     if (noout == 0) {
 	/*
@@ -1128,6 +1350,49 @@ static void parseAndPrintFile(char *filename, xmlParserCtxtPtr rectxt) {
 	    if ((timing) && (!repeat)) {
 		startTimer();
 	    }
+#ifdef LIBXML_VALID_ENABLED
+            if ((html) && (!xmlout)) {
+		if (compress) {
+		    htmlSaveFile(output ? output : "-", doc);
+		}
+		else if (encoding != NULL) {
+		    if ( format ) {
+			htmlSaveFileFormat(output ? output : "-", doc, encoding, 1);
+		    }
+		    else {
+			htmlSaveFileFormat(output ? output : "-", doc, encoding, 0);
+		    }
+		}
+		else if (format) {
+		    htmlSaveFileFormat(output ? output : "-", doc, NULL, 1);
+		}
+		else {
+		    FILE *out;
+		    if (output == NULL)
+			out = stdout;
+		    else {
+			out = fopen(output,"wb");
+		    }
+		    if (out != NULL) {
+			if (htmlDocDump(out, doc) < 0)
+			    progresult = 6;
+
+			if (output != NULL)
+			    fclose(out);
+#ifdef __riscos
+			if (output != NULL)
+			    settype(riscosfilename(output), htmlout ? 0xfaf : 0xf80); /* HTML/XML */
+#endif
+		    } else {
+			fprintf(stderr, "failed to open %s\n", output);
+			progresult = 6;
+		    }
+		}
+		if ((timing) && (!repeat)) {
+		    endTimer("Saving");
+		}
+	    } else
+#endif
 #ifdef HAVE_SYS_MMAN_H
 	    if (memory) {
 		xmlChar *result;
@@ -1209,8 +1474,8 @@ static void parseAndPrintFile(char *filename, xmlParserCtxtPtr rectxt) {
 		    if (output != NULL)
 			fclose(out);
 #ifdef __riscos
-		    if (output)
-			settype(riscosfilename(output), htmlout ? 0xfaf : 0xf80); /* HTML/XML */
+		if (output)
+		    settype(riscosfilename(output), htmlout ? 0xfaf : 0xf80); /* HTML/XML */
 #endif
 		} else {
 		    fprintf(stderr, "failed to open %s\n", output);
@@ -1237,10 +1502,6 @@ static void parseAndPrintFile(char *filename, xmlParserCtxtPtr rectxt) {
 
 		if (output != NULL)
 		    fclose(out);
-#ifdef __riscos
-		if (output)
-		    settype(riscosfilename(output), htmlout ? 0xfaf : 0xf80); /* HTML/XML */
-#endif
 	    } else {
 		fprintf(stderr, "failed to open %s\n", output);
 		progresult = 6;
@@ -1526,6 +1787,7 @@ static void usage(const char *name) {
 #endif /* LIBXML_OUTPUT_ENABLED */
 #ifdef LIBXML_HTML_ENABLED
     printf("\t--html : use the HTML parser\n");
+    printf("\t--xmlout : force to use the XML serializer when using --html\n");
 #endif
 #ifdef LIBXML_PUSH_ENABLED
     printf("\t--push : use the push mode of the parser\n");
@@ -1566,6 +1828,7 @@ static void usage(const char *name) {
 #endif
 #ifdef LIBXML_READER_ENABLED
     printf("\t--stream : use the streaming interface to process very large files\n");
+    printf("\t--walker : create a reader and walk though the resulting doc\n");
 #endif /* LIBXML_READER_ENABLED */
     printf("\t--chkregister : verify the node registration code\n");
 #ifdef LIBXML_SCHEMAS_ENABLED
@@ -1665,6 +1928,10 @@ main(int argc, char **argv) {
 	         (!strcmp(argv[i], "--html"))) {
 	    html++;
         }
+	else if ((!strcmp(argv[i], "-xmlout")) ||
+	         (!strcmp(argv[i], "--xmlout"))) {
+	    xmlout++;
+        }
 #endif /* LIBXML_HTML_ENABLED */
 	else if ((!strcmp(argv[i], "-loaddtd")) ||
 	         (!strcmp(argv[i], "--loaddtd"))) {
@@ -1733,7 +2000,7 @@ main(int argc, char **argv) {
 	else if ((!strcmp(argv[i], "-xinclude")) ||
 	         (!strcmp(argv[i], "--xinclude"))) {
 	    xinclude++;
-	    /* options |= XML_PARSE_XINCLUDE; */
+	    options |= XML_PARSE_XINCLUDE;
 	}
 #endif
 #ifdef LIBXML_OUTPUT_ENABLED
@@ -1800,6 +2067,11 @@ main(int argc, char **argv) {
 	         (!strcmp(argv[i], "--stream"))) {
 	     stream++;
 	}
+	else if ((!strcmp(argv[i], "-walker")) ||
+	         (!strcmp(argv[i], "--walker"))) {
+	     walker++;
+             noout++;
+	}
 #endif /* LIBXML_READER_ENABLED */
 #ifdef LIBXML_SAX1_ENABLED
 	else if ((!strcmp(argv[i], "-sax1")) ||
@@ -1810,6 +2082,12 @@ main(int argc, char **argv) {
 	else if ((!strcmp(argv[i], "-chkregister")) ||
 	         (!strcmp(argv[i], "--chkregister"))) {
 	     chkregister++;
+#ifdef __riscos
+        } else if ((!strcmp(argv[i], "-T")) ||
+                (!strcmp(argv[i], "-throwback")) ||
+                (!strcmp(argv[i], "--throwback"))) {
+            throwback=1;
+#endif
 #ifdef LIBXML_SCHEMAS_ENABLED
 	} else if ((!strcmp(argv[i], "-relaxng")) ||
 	         (!strcmp(argv[i], "--relaxng"))) {
@@ -1825,13 +2103,7 @@ main(int argc, char **argv) {
 #endif
         } else if ((!strcmp(argv[i], "-nonet")) ||
                    (!strcmp(argv[i], "--nonet"))) {
-	    xmlSetExternalEntityLoader(xmlNoNetExternalEntityLoader);
-#ifdef __riscos
-        } else if ((!strcmp(argv[i], "-T")) ||
-                (!strcmp(argv[i], "-throwback")) ||
-                (!strcmp(argv[i], "--throwback"))) {
-            throwback=1;
-#endif
+	    options |= XML_PARSE_NONET;
 	} else {
 	    fprintf(stderr, "Unknown option %s\n", argv[i]);
 	    usage(argv[0]);
@@ -1846,21 +2118,20 @@ main(int argc, char **argv) {
 
 #ifdef __riscos
 	    catal = getenv("SGML$CatalogFiles");
-#else
-	    catal = getenv("SGML_CATALOG_FILES");
-#endif
 	    if (catal != NULL) {
-#ifdef __riscos
 		catal = unixfilename(catal);
-#endif
 		xmlLoadCatalogs(catal);
 	    } else {
-#ifdef __riscos
 		fprintf(stderr, "Variable SGML$CatalogFiles not set\n");
-#else
-		fprintf(stderr, "Variable $SGML_CATALOG_FILES not set\n");
-#endif
 	    }
+#else
+	    catal = getenv("SGML_CATALOG_FILES");
+	    if (catal != NULL) {
+		xmlLoadCatalogs(catal);
+	    } else {
+		fprintf(stderr, "Variable $SGML_CATALOG_FILES not set\n");
+	    }
+#endif
 	}
     }
 #endif
@@ -1877,7 +2148,13 @@ main(int argc, char **argv) {
 	xmlDeregisterNodeDefault(deregisterNode);
     }
 
+#ifdef __riscos
+    indent = getenv("XMLLint$Indent"); /* JRF: Maybe we should copy this
+                                               as the next getenv will
+                                               overwrite it */
+#else
     indent = getenv("XMLLINT_INDENT");
+#endif
     if(indent != NULL) {
 	xmlTreeIndentString = indent;
     }
@@ -1889,7 +2166,8 @@ main(int argc, char **argv) {
      */
     if (throwback)
     {
-      xmlSetGenericErrorFunc(NULL, xmllintErrorFunc);
+      printf("THROWBACK-INSTALLED\n");
+      xmlSetStructuredErrorFunc(NULL, xmllintErrorFunc);
     }
 #endif
     xmlLineNumbersDefault(1);

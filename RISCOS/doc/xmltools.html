@@ -1,25 +1,26 @@
-<html><!--
-  Auto-generated using XSLT stylesheet created by Justin Fletcher.
-  
-  This document was created with the HTML stylesheet updated (11 Apr 2002).
+<?xml version="1.0" encoding="utf-8"?>
+<html xmlns="http://www.w3.org/TR/xhtml1/strict" xmlns:localdb="local-file-database" xmlns:saxon="http://icl.com/saxon"><!--
+  Auto-generated using XSLT stylesheet created by Gerph.
+
+  This document was created with the HTML stylesheet updated 19 Sep 2020.
 -->
-<head><meta content="text/html; charset=UTF-8" http-equiv="Content-Type"><title>Library tools : XML tools</title></head><body bgcolor="white" text="black" link="blue" alink="red" vlink="darkblue"><hr><h1>XML tools</h1><hr><dl><dt><h2>Contents</h2></dt><dd><ul><li><a href="#section_introduction_and_overview">Introduction and Overview</a></li><li><a href="#section_system_variables">System variables</a><ul><li><a href="#sysvar_sgml_catalogfiles">SGML$CatalogFiles</a></li><li><a href="#sysvar_xml_catalogfiles">XML$CatalogFiles</a></li></ul></li><li><a href="#section_commands">*Commands</a><ul><li><a href="#command_xmlcatalog">XMLCatalog</a></li><li><a href="#command_xmllint">XMLLint</a></li></ul></li></ul></dd></dl><hr><dl><dt><h2><a name="section_introduction_and_overview">Introduction and Overview</a></h2></dt><dd><dl><dd><p>The XML tools are ports of the LibXML2, LibXSLT and XSLDBG applications.
+<head><meta charset="utf-8"/><title>Library tools : XML tools</title></head><body bgcolor="white" text="black" link="blue" alink="red" vlink="darkblue"><hr/><h1>XML tools</h1><hr/><dl><dt><h2>Contents</h2></dt><dd><ul><li><a href="#section_introduction_and_overview">Introduction and Overview</a></li><li><a href="#section_system_variables">System variables</a><ul><li><a href="#sysvar_sgml_catalogfiles">SGML$CatalogFiles</a></li><li><a href="#sysvar_xml_catalogfiles">XML$CatalogFiles</a></li></ul></li><li><a href="#section_commands">*Commands</a><ul><li><a href="#command_xmlcatalog">*XMLCatalog</a></li><li><a href="#command_xmllint">*XMLLint</a></li></ul></li></ul></dd></dl><hr/><dl><dt><h2><a name="section_introduction_and_overview">Introduction and Overview</a></h2></dt><dd><dl><dd><p>The XML tools are ports of the LibXML2, LibXSLT and XSLDBG applications.
 These are libraries originating on unix to manipulate and process XML and
 XSLT documents. These ports were created by Justin Fletcher.
 </p></dd></dl></dd><dd><dl><dd><p>Filenames specified with the XML tools, unless otherwise stated, are
 in URI filename format, for example
 <code>file:///$/hello/there.xml</code> or
 <code>../dir/thing.xml</code>. URI style escaping using %xx may
-be used to embed characters which would otherwise be illegal.</p></dd></dl></dd></dl><hr><dl><dt><h2><a name="section_system_variables">System variables</a></h2></dt><dd><dl><dd><hr><h2 align="right"><a name="sysvar_sgml_catalogfiles">SGML$CatalogFiles</a></h2><dd>Declare names of SGML catalog file definitions</dd><dt><h5>Use</h5></dt><dd>
+be used to embed characters which would otherwise be illegal.</p></dd></dl></dd></dl><hr/><dl><dt><h2><a name="section_system_variables">System variables</a></h2></dt><dd><dl><dd><hr/><h2 align="right"><a name="sysvar_sgml_catalogfiles">SGML$CatalogFiles</a></h2><dd>Declare names of SGML catalog file definitions</dd><dt><h5>Use</h5></dt><dd>
 <p>This variable declares where SGML catalog files live. The value of the
 variable itself is a space-separated list of native filenames of SGML
 catalog files describing catalog entries. SGML catalogs are deprecated in
 favour of XML catalogs.</p>
-</dd><dt><h5>Related system variables</h5></dt><dd><a href="#sysvar_xml_catalogfiles">XML$CatalogFiles</a></dd></dd></dl></dd><dd><dl><dd><hr><h2 align="right"><a name="sysvar_xml_catalogfiles">XML$CatalogFiles</a></h2><dd>Declare names of XML catalog file definitions</dd><dt><h5>Use</h5></dt><dd>
+</dd><dt><h5>Related system variables</h5></dt><dd><a href="#sysvar_xml_catalogfiles">XML$CatalogFiles</a></dd></dd></dl></dd><dd><dl><dd><hr/><h2 align="right"><a name="sysvar_xml_catalogfiles">XML$CatalogFiles</a></h2><dd>Declare names of XML catalog file definitions</dd><dt><h5>Use</h5></dt><dd>
 <p>This variable declares where XML catalog files live. The value of the
 variable itself is a space-separated list of native filenames of XML
 catalog files describing catalog entries.</p>
-</dd><dt><h5>Related system variables</h5></dt><dd><a href="#sysvar_sgml_catalogfiles">SGML$CatalogFiles</a></dd></dd></dl></dd></dl><hr><dl><dt><h2><a name="section_commands">*Commands</a></h2></dt><dd><dl><dd><hr><h2 align="right"><a name="command_xmlcatalog">*XMLCatalog</a></h2><dd>Command line tool to parse and manipulate XML or SGML catalog files.</dd><dt><h5>Syntax</h5></dt><dd><code>*XMLCatalog
+</dd><dt><h5>Related system variables</h5></dt><dd><a href="#sysvar_sgml_catalogfiles">SGML$CatalogFiles</a></dd></dd></dl></dd></dl><hr/><dl><dt><h2><a name="section_commands">*Commands</a></h2></dt><dd><dl><dd><hr/><h2 align="right"><a name="command_xmlcatalog">*XMLCatalog</a></h2><dd>Command line tool to parse and manipulate XML or SGML catalog files.</dd><dt><h5>Syntax</h5></dt><dd><code>*XMLCatalog
  [-shell | -create | -add 
    <i>&lt;type&gt;</i>
    <i>&lt;original&gt;</i>
@@ -121,7 +122,7 @@ xmlcatalog is executing</td></tr>
 </table>
 </p>
 
-</dd><dt><h5>Related * commands</h5></dt><dd><a href="#command_xmllint">*XMLLint</a></dd></dd></dl></dd><dd><dl><dd><hr><h2 align="right"><a name="command_xmllint">*XMLLint</a></h2><dd>Parse the XML files and output the result of the parsing</dd><dt><h5>Syntax</h5></dt><dd><code>*XMLLint
+</dd><dt><h5>Related * commands</h5></dt><dd><a href="#command_xmllint">*XMLLint</a></dd></dd></dl></dd><dd><dl><dd><hr/><h2 align="right"><a name="command_xmllint">*XMLLint</a></h2><dd>Parse the XML files and output the result of the parsing</dd><dt><h5>Syntax</h5></dt><dd><code>*XMLLint
  [-version]
  [-debug]
  [-shell]
@@ -192,23 +193,23 @@ xmlcatalog is executing</td></tr>
 <p>xmllint is a command line application allowing users to process XML. It
 is included in libxml2.</p>
 
-</dd><dt><h5>Related * commands</h5></dt><dd><a href="#command_xmlcatalog">*XMLCatalog</a></dd></dd></dl></dd></dl><hr></body>
+</dd><dt><h5>Related * commands</h5></dt><dd><a href="#command_xmlcatalog">*XMLCatalog</a></dd></dd></dl></dd></dl><hr/></body>
 
 
 
 <dl><dt><h2><a name="metadata">Document information</a></h2></dt><dd><table summary="Meta information table"><tr><th align="right" valign="top">Maintainer(s):</th><td>
   Justin Fletcher &lt;<a href="mailto:justin.fletcher@ntlworld.com">justin.fletcher@ntlworld.com</a>&gt;
  </td></tr><tr><th align="right" valign="top">History:</th><td><table border="0" summary="Document history"><tr><th align="left">Revision</th><th align="left">Date</th><th align="left">Author</th><th align="left">Changes</th></tr>
-  <tr><td valign="top">1</td><td valign="top">15 Dec 2002</td><td valign="top">JRF</td><td valign="top"><strong>Initial version</strong><br></td></tr>
-  <tr><td valign="top">2</td><td valign="top">15 Jan 2002</td><td valign="top">JRF</td><td valign="top"><strong>LibXML 2.4.13</strong><br><ul>
+  <tr><td valign="top">1</td><td valign="top" style="white-space: nowrap;">15 Dec 2002</td><td valign="top">JRF</td><td valign="top"><strong>Initial version</strong><br/></td></tr>
+  <tr><td valign="top">2</td><td valign="top" style="white-space: nowrap;">15 Jan 2002</td><td valign="top">JRF</td><td valign="top"><strong>LibXML 2.4.13</strong><br/><ul>
    <li>XMLLint: -output, and -dropdtd documented</li>
    <li>Added note about filename usage</li>
   </ul></td></tr>
  </table></td></tr><tr><th align="right" valign="top">Related:</th><td>None</td></tr><tr><th align="right" valign="top">Disclaimer:</th><td align="left" valign="top">
   <p>
    This document covers the RISC OS version of the XML tools from LibXML2,
-   LibXSLT and XSLDebug.<br>
+   LibXSLT and XSLDebug.<br/>
    It is maintained exclusively by the Justin Fletcher, based on the
    documentation originally written by the authors of the libraries.
   </p>
- </td></tr></table></dd></dl><hr></html>
+ </td></tr></table></dd></dl><hr/></html>

@@ -2,7 +2,7 @@
 | Utility to set up the environment for building this library
 
 Set LibraryName libxml2
-Set LastVersion 2/6/0
+Set LastVersion 2/6/1
 
 Unset ThisVersion
 If ("<ThisVersion>" = "") AND (("<Obey$Dir>" RIGHT 4) LEFT 1 = "-") Then SetEval ThisVersion ("<Obey$Dir>" RIGHT 3)

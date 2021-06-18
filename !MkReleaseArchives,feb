@@ -2,9 +2,7 @@
 | Do the final stage of the build - that archives
 
 | Copy the help file
-| FIXME: The help file hasn't been generated!
-X Copy <ThisRISCOS>.doc.xmltools/html @.xmltools/html ~C~VF~D
-Copy <ThisRISCOS>.doc.xmltools/xml @.xmltools/xml ~C~VF~D
+Copy <ThisRISCOS>.doc.xmltools/html @.xmltools/html ~C~VF~D
 
 | Generate the Help files for XML catalog and XML lint
 Echo [Generate help files]

@@ -413,6 +413,9 @@ __xmlLoaderErr(void *ctx, const char *msg, const char *filename)
     void *data = NULL;
     xmlErrorLevel level = XML_ERR_ERROR;
 
+    if ((ctxt != NULL) && (ctxt->disableSAX != 0) &&
+        (ctxt->instate == XML_PARSER_EOF))
+	return;
     if ((ctxt != NULL) && (ctxt->sax != NULL)) {
         if (ctxt->validate) {
 	    channel = ctxt->sax->error;
@@ -2173,7 +2176,8 @@ xmlParserInputBufferCreateFilename(const char *URI, xmlCharEncoding enc) {
 	ret->readcallback = xmlInputCallbackTable[i].readcallback;
 	ret->closecallback = xmlInputCallbackTable[i].closecallback;
 #ifdef HAVE_ZLIB_H
-	if (xmlInputCallbackTable[i].opencallback == xmlGzfileOpen) {
+	if ((xmlInputCallbackTable[i].opencallback == xmlGzfileOpen) &&
+		(strcmp(URI, "-") != 0)) {
 	    if (((z_stream *)context)->avail_in > 4) {
 	        char *cptr, buff4[4];
 		cptr = (char *) ((z_stream *)context)->next_in;
@@ -2216,11 +2220,7 @@ xmlOutputBufferCreateFilename(const char *URI,
     void *context = NULL;
     char *unescaped;
 
-#ifdef LIBXML_HTTP_ENABLED
-#ifdef LIBXML_HTTP_ENABLED
     int is_http_uri = 0;	/*   Can't change if HTTP disabled  */
-#endif
-#endif
 
     if (xmlOutputCallbackInitialized == 0)
 	xmlRegisterDefaultOutputCallbacks();
@@ -3124,6 +3124,15 @@ xmlDefaultExternalEntityLoader(const char *URL, const char *ID,
                     "xmlDefaultExternalEntityLoader(%s, xxx)\n", URL);
 #endif
 #ifdef LIBXML_CATALOG_ENABLED
+    if ((ctxt != NULL) && (ctxt->options & XML_PARSE_NONET)) {
+        int options = ctxt->options;
+
+	ctxt->options -= XML_PARSE_NONET;
+        ret = xmlNoNetExternalEntityLoader(URL, ID, ctxt);
+	ctxt->options = options;
+	return(ret);
+    }
+
     /*
      * If the resource doesn't exists as a file,
      * try to load it from the resource pointed in the catalogs

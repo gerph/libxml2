@@ -141,6 +141,9 @@ static void
 xmlErrAttributeDup(xmlParserCtxtPtr ctxt, const xmlChar * prefix,
                    const xmlChar * localname)
 {
+    if ((ctxt != NULL) && (ctxt->disableSAX != 0) &&
+        (ctxt->instate == XML_PARSER_EOF))
+	return;
     ctxt->errNo = XML_ERR_ATTRIBUTE_REDEFINED;
     if (prefix == NULL)
         __xmlRaiseError(NULL, NULL, NULL, ctxt, NULL, XML_FROM_PARSER,
@@ -171,6 +174,9 @@ xmlFatalErr(xmlParserCtxtPtr ctxt, xmlParserErrors error, const char *info)
 {
     const char *errmsg;
 
+    if ((ctxt != NULL) && (ctxt->disableSAX != 0) &&
+        (ctxt->instate == XML_PARSER_EOF))
+	return;
     switch (error) {
         case XML_ERR_INVALID_HEX_CHARREF:
             errmsg = "CharRef: invalid hexadecimal value\n";
@@ -371,6 +377,9 @@ static void
 xmlFatalErrMsg(xmlParserCtxtPtr ctxt, xmlParserErrors error,
                const char *msg)
 {
+    if ((ctxt != NULL) && (ctxt->disableSAX != 0) &&
+        (ctxt->instate == XML_PARSER_EOF))
+	return;
     ctxt->errNo = error;
     __xmlRaiseError(NULL, NULL, NULL, ctxt, NULL, XML_FROM_PARSER, error,
                     XML_ERR_FATAL, NULL, 0, NULL, NULL, NULL, 0, 0, msg);
@@ -395,6 +404,9 @@ xmlWarningMsg(xmlParserCtxtPtr ctxt, xmlParserErrors error,
 {
     xmlStructuredErrorFunc schannel = NULL;
     
+    if ((ctxt != NULL) && (ctxt->disableSAX != 0) &&
+        (ctxt->instate == XML_PARSER_EOF))
+	return;
     ctxt->errNo = error;
     if ((ctxt->sax != NULL) && (ctxt->sax->initialized == XML_SAX2_MAGIC))
         schannel = ctxt->sax->serror;
@@ -421,6 +433,10 @@ xmlValidityError(xmlParserCtxtPtr ctxt, xmlParserErrors error,
               const char *msg, const xmlChar *str1)
 {
     xmlStructuredErrorFunc schannel = NULL;
+
+    if ((ctxt != NULL) && (ctxt->disableSAX != 0) &&
+        (ctxt->instate == XML_PARSER_EOF))
+	return;
     ctxt->errNo = error;
     if ((ctxt->sax != NULL) && (ctxt->sax->initialized == XML_SAX2_MAGIC))
         schannel = ctxt->sax->serror;
@@ -446,6 +462,9 @@ static void
 xmlFatalErrMsgInt(xmlParserCtxtPtr ctxt, xmlParserErrors error,
                   const char *msg, int val)
 {
+    if ((ctxt != NULL) && (ctxt->disableSAX != 0) &&
+        (ctxt->instate == XML_PARSER_EOF))
+	return;
     ctxt->errNo = error;
     __xmlRaiseError(NULL, NULL, NULL,
                     ctxt, NULL, XML_FROM_PARSER, error, XML_ERR_FATAL,
@@ -471,6 +490,9 @@ xmlFatalErrMsgStrIntStr(xmlParserCtxtPtr ctxt, xmlParserErrors error,
                   const char *msg, const xmlChar *str1, int val, 
 		  const xmlChar *str2)
 {
+    if ((ctxt != NULL) && (ctxt->disableSAX != 0) &&
+        (ctxt->instate == XML_PARSER_EOF))
+	return;
     ctxt->errNo = error;
     __xmlRaiseError(NULL, NULL, NULL,
                     ctxt, NULL, XML_FROM_PARSER, error, XML_ERR_FATAL,
@@ -494,6 +516,9 @@ static void
 xmlFatalErrMsgStr(xmlParserCtxtPtr ctxt, xmlParserErrors error,
                   const char *msg, const xmlChar * val)
 {
+    if ((ctxt != NULL) && (ctxt->disableSAX != 0) &&
+        (ctxt->instate == XML_PARSER_EOF))
+	return;
     ctxt->errNo = error;
     __xmlRaiseError(NULL, NULL, NULL, ctxt, NULL,
                     XML_FROM_PARSER, error, XML_ERR_FATAL,
@@ -517,6 +542,9 @@ static void
 xmlErrMsgStr(xmlParserCtxtPtr ctxt, xmlParserErrors error,
                   const char *msg, const xmlChar * val)
 {
+    if ((ctxt != NULL) && (ctxt->disableSAX != 0) &&
+        (ctxt->instate == XML_PARSER_EOF))
+	return;
     ctxt->errNo = error;
     __xmlRaiseError(NULL, NULL, NULL, ctxt, NULL,
                     XML_FROM_PARSER, error, XML_ERR_ERROR,
@@ -540,6 +568,9 @@ xmlNsErr(xmlParserCtxtPtr ctxt, xmlParserErrors error,
          const xmlChar * info1, const xmlChar * info2,
          const xmlChar * info3)
 {
+    if ((ctxt != NULL) && (ctxt->disableSAX != 0) &&
+        (ctxt->instate == XML_PARSER_EOF))
+	return;
     ctxt->errNo = error;
     __xmlRaiseError(NULL, NULL, NULL, ctxt, NULL, XML_FROM_NAMESPACE, error,
                     XML_ERR_ERROR, NULL, 0, (const char *) info1,
@@ -2482,6 +2513,30 @@ xmlStrPrintf(xmlChar *buf, int len, const xmlChar *msg, ...) {
     return(ret);
 }
 
+/**
+ * xmlStrVPrintf:
+ * @buf:   the result buffer.
+ * @len:   the result buffer length.
+ * @msg:   the message with printf formatting.
+ * @ap:    extra parameters for the message.
+ *
+ * Formats @msg and places result into @buf.
+ *
+ * Returns the number of characters written to @buf or -1 if an error occurs.
+ */
+int 
+xmlStrVPrintf(xmlChar *buf, int len, const xmlChar *msg, va_list ap) {
+    int ret;
+    
+    if((buf == NULL) || (msg == NULL)) {
+	return(-1);
+    }
+    
+    ret = vsnprintf((char *) buf, len, (const char *) msg, ap);
+    buf[len - 1] = 0; /* be safe ! */
+    
+    return(ret);
+}
 /************************************************************************
  *									*
  *		Commodity functions, cleanup needed ?			*
@@ -10102,7 +10157,10 @@ xmlParseChunk(xmlParserCtxtPtr ctxt, const char *chunk, int size,
  */
 void           
 xmlStopParser(xmlParserCtxtPtr ctxt) {
+    if (ctxt == NULL)
+        return;
     ctxt->instate = XML_PARSER_EOF;
+    ctxt->disableSAX = 1;
     if (ctxt->input != NULL)
 	ctxt->input->cur = BAD_CAST"";
 }
@@ -10644,6 +10702,9 @@ xmlParseCtxtExternalEntity(xmlParserCtxtPtr ctx, const xmlChar *URL,
     ctxt->vctxt.node = NULL;
     if (ctxt->dict != NULL) xmlDictFree(ctxt->dict);
     ctxt->dict = ctx->dict;
+    ctxt->str_xml = xmlDictLookup(ctxt->dict, BAD_CAST "xml", 3);
+    ctxt->str_xmlns = xmlDictLookup(ctxt->dict, BAD_CAST "xmlns", 5);
+    ctxt->str_xml_ns = xmlDictLookup(ctxt->dict, XML_XML_NAMESPACE, 36);
     ctxt->dictNames = ctx->dictNames;
     ctxt->attsDefault = ctx->attsDefault;
     ctxt->attsSpecial = ctx->attsSpecial;
@@ -10988,6 +11049,9 @@ xmlParseBalancedChunkMemoryInternal(xmlParserCtxtPtr oldctxt,
 	ctxt->userData = ctxt;
     if (ctxt->dict != NULL) xmlDictFree(ctxt->dict);
     ctxt->dict = oldctxt->dict;
+    ctxt->str_xml = xmlDictLookup(ctxt->dict, BAD_CAST "xml", 3);
+    ctxt->str_xmlns = xmlDictLookup(ctxt->dict, BAD_CAST "xmlns", 5);
+    ctxt->str_xml_ns = xmlDictLookup(ctxt->dict, XML_XML_NAMESPACE, 36);
 
     oldsax = ctxt->sax;
     ctxt->sax = oldctxt->sax;
@@ -11369,17 +11433,18 @@ xmlCreateEntityParserCtxt(const xmlChar *URL, const xmlChar *ID,
  ************************************************************************/
 
 /**
- * xmlCreateFileParserCtxt:
- * @filename:  the filename
+ * xmlCreateURLParserCtxt:
+ * @filename:  the filename or URL
+ * @options:  a combination of xmlParserOption(s)
  *
- * Create a parser context for a file content. 
+ * Create a parser context for a file or URL content. 
  * Automatic support for ZLIB/Compress compressed document is provided
- * by default if found at compile-time.
+ * by default if found at compile-time and for file accesses
  *
  * Returns the new parser context or NULL
  */
 xmlParserCtxtPtr
-xmlCreateFileParserCtxt(const char *filename)
+xmlCreateURLParserCtxt(const char *filename, int options)
 {
     xmlParserCtxtPtr ctxt;
     xmlParserInputPtr inputStream;
@@ -11391,6 +11456,8 @@ xmlCreateFileParserCtxt(const char *filename)
 	return(NULL);
     }
 
+    if (options != 0)
+        xmlCtxtUseOptions(ctxt, options);
     
     inputStream = xmlLoadExternalEntity(filename, NULL, ctxt);
     if (inputStream == NULL) {
@@ -11405,6 +11472,22 @@ xmlCreateFileParserCtxt(const char *filename)
         ctxt->directory = directory;
 
     return(ctxt);
+}
+
+/**
+ * xmlCreateFileParserCtxt:
+ * @filename:  the filename
+ *
+ * Create a parser context for a file content. 
+ * Automatic support for ZLIB/Compress compressed document is provided
+ * by default if found at compile-time.
+ *
+ * Returns the new parser context or NULL
+ */
+xmlParserCtxtPtr
+xmlCreateFileParserCtxt(const char *filename)
+{
+    return(xmlCreateURLParserCtxt(filename, 0));
 }
 
 #ifdef LIBXML_SAX1_ENABLED
@@ -12323,6 +12406,11 @@ xmlCtxtUseOptions(xmlParserCtxtPtr ctxt, int options)
 	ctxt->options |= XML_PARSE_NSCLEAN;
         options -= XML_PARSE_NSCLEAN;
     }
+    if (options & XML_PARSE_NONET) {
+	ctxt->options |= XML_PARSE_NONET;
+        options -= XML_PARSE_NONET;
+    }
+    ctxt->linenumbers = 1;
     return (options);
 }
 
@@ -12425,7 +12513,7 @@ xmlReadFile(const char *filename, const char *encoding, int options)
 {
     xmlParserCtxtPtr ctxt;
 
-    ctxt = xmlCreateFileParserCtxt(filename);
+    ctxt = xmlCreateURLParserCtxt(filename, options);
     if (ctxt == NULL)
         return (NULL);
     return (xmlDoRead(ctxt, NULL, encoding, options, 0));

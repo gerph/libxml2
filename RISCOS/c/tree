@@ -2375,10 +2375,22 @@ xmlNewTextChild(xmlNodePtr parent, xmlNsPtr ns,
     /*
      * Allocate a new node
      */
-    if (ns == NULL)
-	cur = xmlNewDocRawNode(parent->doc, parent->ns, name, content);
-    else
-	cur = xmlNewDocRawNode(parent->doc, ns, name, content);
+    if (parent->type == XML_ELEMENT_NODE) {
+	if (ns == NULL)
+	    cur = xmlNewDocRawNode(parent->doc, parent->ns, name, content);
+	else
+	    cur = xmlNewDocRawNode(parent->doc, ns, name, content);
+    } else if ((parent->type == XML_DOCUMENT_NODE) ||
+	       (parent->type == XML_HTML_DOCUMENT_NODE)) {
+	if (ns == NULL)
+	    cur = xmlNewDocRawNode((xmlDocPtr) parent, NULL, name, content);
+	else
+	    cur = xmlNewDocRawNode((xmlDocPtr) parent, ns, name, content);
+    } else if (parent->type == XML_DOCUMENT_FRAG_NODE) {
+	    cur = xmlNewDocRawNode( parent->doc, ns, name, content);
+    } else {
+	return(NULL);
+    }
     if (cur == NULL) return(NULL);
 
     /*
@@ -2989,7 +3001,8 @@ xmlAddSibling(xmlNodePtr cur, xmlNodePtr elem) {
 
     xmlUnlinkNode(elem);
 
-    if ((cur->type == XML_TEXT_NODE) && (elem->type == XML_TEXT_NODE)) {
+    if ((cur->type == XML_TEXT_NODE) && (elem->type == XML_TEXT_NODE) &&
+        (cur->name == elem->name)) {
 	xmlNodeAddContent(cur, elem->content);
 	xmlFreeNode(elem);
 	return(cur);
@@ -3129,6 +3142,7 @@ xmlAddChild(xmlNodePtr parent, xmlNodePtr cur) {
     if (cur->type == XML_TEXT_NODE) {
 	if ((parent->type == XML_TEXT_NODE) &&
 	    (parent->content != NULL) &&
+	    (parent->name == cur->name) &&
 	    (parent != cur)) {
 	    xmlNodeAddContent(parent, cur->content);
 	    xmlFreeNode(cur);
