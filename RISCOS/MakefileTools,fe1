@@ -41,7 +41,7 @@ CDEFINES   =
 
 # Only link with the short version of C lib
 BUILD32    = 1
-CLIBTYPE   = noc99
+CLIBTYPE   = generic
 
 # Space separated list of libraries to link against.
 LIBS       = ${CLIB} C:libxml.o.libxml

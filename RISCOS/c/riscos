@@ -20,6 +20,9 @@ static char buffer[2048];
 static char filenamebuffer[2048];
 static char unixbuffer[2048];
 
+#if __CONFIG != 32
+/* If we're in 32bit configuration then we can build with StubsG and thus
+   get the snprintf routines in the core library. */
 int vsnprintf(char *output, int size, const char *format, va_list args)
 {
   int count;
@@ -46,6 +49,7 @@ int snprintf(char *output, int size, const char *format, ...)
 
   return count;
 }
+#endif
 
 char *riscosfilename(const char *src)
 {

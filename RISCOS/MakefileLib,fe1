@@ -38,6 +38,7 @@ EXPORTS    = ${EXP_LIB}.${COMPONENT}.h.libxml \
              ${EXP_LIB}.${COMPONENT}.h.parser \
              ${EXP_LIB}.${COMPONENT}.h.parserInternals \
              ${EXP_LIB}.${COMPONENT}.h.relaxng \
+             ${EXP_LIB}.${COMPONENT}.h.riscos \
              ${EXP_LIB}.${COMPONENT}.h.schemasInternals \
              ${EXP_LIB}.${COMPONENT}.h.threads \
              ${EXP_LIB}.${COMPONENT}.h.tree \
@@ -61,7 +62,7 @@ EXPORTS    = ${EXP_LIB}.${COMPONENT}.h.libxml \
              ${EXP_LIB}.${COMPONENT}.h.xpointer \
 
 NO_EXPORT =  \
-
+             $(EXP_LIB).$(COMPONENT).h.xmlwriter \
 
 # Comma-separated list of paths to use for includes, such as:
 #   <Lib$Dir>.LibName.
@@ -102,9 +103,7 @@ OBJS       = o.c14n \
              o.valid \
              o.xinclude \
              o.xlink \
-             o.xmlcatalog \
              o.xmlIO \
-             o.xmllint \
              o.xmlmemory \
              o.xmlreader \
              o.xmlregexp \
@@ -179,6 +178,8 @@ ${EXP_LIB}.${COMPONENT}.h.parser: include.libxml.h.parser
 ${EXP_LIB}.${COMPONENT}.h.parserInternals: include.libxml.h.parserInternals
         ${CP} $? $@ ${CPFLAGS}
 ${EXP_LIB}.${COMPONENT}.h.relaxng: include.libxml.h.relaxng
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.riscos: include.libxml.h.riscos
         ${CP} $? $@ ${CPFLAGS}
 ${EXP_LIB}.${COMPONENT}.h.schemasInternals: include.libxml.h.schemasInternals
         ${CP} $? $@ ${CPFLAGS}
