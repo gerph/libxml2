@@ -22,7 +22,9 @@ jobs:
     # The build will terminate if any command returns a non-0 return code or an error.
     script:
       - dir RISCOS
-      - amu
+      - amu -f MakefileLib export
+      - amu -f MakefileTool TARGET=xmlLint
+      - amu -f MakefileTool TARGET=xmlCatalog
       - cdir Release
       - copy xmlCatalog Release.xmlCatalog ~CVF~R
       - copy xmlLint Release.xmlLint ~CVF~R

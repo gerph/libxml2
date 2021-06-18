@@ -303,7 +303,7 @@ endTimer(char *format, ...)
 #include <ctype.h>
 #include <stdarg.h>
 #include <limits.h>
-#include <libxml/riscos.h>
+#include "libxml/riscos.h"
 #include "throwback.h"
 
 int throwback=0;

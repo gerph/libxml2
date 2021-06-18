@@ -1,0 +1,237 @@
+#!/usr/bin/env riscos-amu -f
+# Makefile for libXML library export
+#
+
+#
+# Program specific options:
+#
+COMPONENT  = libxml
+TARGET     = libxml
+
+# Specifies additional targets for startup
+#INITTARGET = inittarget
+
+# Specifies additional targets for clean
+#CLEANTARGET = cleantarget
+
+# Files to export as part of export_hdr or export_libs
+# To export to the library in a subdirectory, use an export like:
+#   ${EXP_LIB}.${COMPONENT}.h.myheader
+EXPORTS    = ${EXP_LIB}.${COMPONENT}.h.libxml \
+             ${EXP_LIB}.${COMPONENT}.h.DOCBparser \
+             ${EXP_LIB}.${COMPONENT}.h.HTMLparser \
+             ${EXP_LIB}.${COMPONENT}.h.HTMLtree \
+             ${EXP_LIB}.${COMPONENT}.h.SAX \
+             ${EXP_LIB}.${COMPONENT}.h.SAX2 \
+             ${EXP_LIB}.${COMPONENT}.h.c14n \
+             ${EXP_LIB}.${COMPONENT}.h.catalog \
+             ${EXP_LIB}.${COMPONENT}.h.chvalid \
+             ${EXP_LIB}.${COMPONENT}.h.debugXML \
+             ${EXP_LIB}.${COMPONENT}.h.dict \
+             ${EXP_LIB}.${COMPONENT}.h.encoding \
+             ${EXP_LIB}.${COMPONENT}.h.entities \
+             ${EXP_LIB}.${COMPONENT}.h.globals \
+             ${EXP_LIB}.${COMPONENT}.h.hash \
+             ${EXP_LIB}.${COMPONENT}.h.list \
+             ${EXP_LIB}.${COMPONENT}.h.nanoftp \
+             ${EXP_LIB}.${COMPONENT}.h.nanohttp \
+             ${EXP_LIB}.${COMPONENT}.h.parser \
+             ${EXP_LIB}.${COMPONENT}.h.parserInternals \
+             ${EXP_LIB}.${COMPONENT}.h.relaxng \
+             ${EXP_LIB}.${COMPONENT}.h.schemasInternals \
+             ${EXP_LIB}.${COMPONENT}.h.threads \
+             ${EXP_LIB}.${COMPONENT}.h.tree \
+             ${EXP_LIB}.${COMPONENT}.h.uri \
+             ${EXP_LIB}.${COMPONENT}.h.valid \
+             ${EXP_LIB}.${COMPONENT}.h.xinclude \
+             ${EXP_LIB}.${COMPONENT}.h.xlink \
+             ${EXP_LIB}.${COMPONENT}.h.xmlIO \
+             ${EXP_LIB}.${COMPONENT}.h.xmlautomata \
+             ${EXP_LIB}.${COMPONENT}.h.xmlerror \
+             ${EXP_LIB}.${COMPONENT}.h.xmlexports \
+             ${EXP_LIB}.${COMPONENT}.h.xmlmemory \
+             ${EXP_LIB}.${COMPONENT}.h.xmlreader \
+             ${EXP_LIB}.${COMPONENT}.h.xmlregexp \
+             ${EXP_LIB}.${COMPONENT}.h.xmlschemas \
+             ${EXP_LIB}.${COMPONENT}.h.xmlschemastypes \
+             ${EXP_LIB}.${COMPONENT}.h.xmlunicode \
+             ${EXP_LIB}.${COMPONENT}.h.xmlversion \
+             ${EXP_LIB}.${COMPONENT}.h.xpath \
+             ${EXP_LIB}.${COMPONENT}.h.xpathInternals \
+             ${EXP_LIB}.${COMPONENT}.h.xpointer \
+
+NO_EXPORT =  \
+
+
+# Comma-separated list of paths to use for includes, such as:
+#   <Lib$Dir>.LibName.
+INCLUDES   = include.
+
+# Space separated list of defines to set, eg -DDEBUG
+CDEFINES   =
+# Define this (and add in the C:o.zlib) to include ZLib support
+# CDEFINES += -DHAVE_ZLIB_H
+
+# Objects to build, using the format o.<name> (will be varied for build type)
+OBJS       = o.c14n \
+             o.catalog \
+             o.chvalid \
+             o.debugXML \
+             o.dict \
+             o.DOCBparser \
+             o.encoding \
+             o.entities \
+             o.error \
+             o.globals \
+             o.hash \
+             o.HTMLparser \
+             o.HTMLtree \
+             o.legacy \
+             o.list \
+             o.nanoftp \
+             o.nanohttp \
+             o.parser \
+             o.parserInternals \
+             o.relaxng \
+             o.SAX \
+             o.SAX2 \
+             o.threads \
+             o.tree \
+             o.triostr \
+             o.uri \
+             o.valid \
+             o.xinclude \
+             o.xlink \
+             o.xmlcatalog \
+             o.xmlIO \
+             o.xmllint \
+             o.xmlmemory \
+             o.xmlreader \
+             o.xmlregexp \
+             o.xmlschemas \
+             o.xmlschemastypes \
+             o.xmlunicode \
+             o.xpath \
+             o.xpointer \
+             o.riscos \
+
+UNUSED = \
+             o.trio \
+             o.trionan \
+             o.xmlwriter \
+             o.throwback \
+
+TESTS =      o.testAutomata \
+             o.testC14N \
+             o.testHTML \
+             o.testReader \
+             o.testRegexp \
+             o.testRelax \
+             o.testSAX \
+             o.testSchemas \
+             o.testThreads \
+             o.testURI \
+             o.testXPath \
+
+include LibExport
+
+# Export rules
+# For any files you export with EXPORTS you may need to include an
+# export rule
+${EXP_LIB}.${COMPONENT}.h.libxml: h.libxml
+       ${CP} $?  $@  ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.DOCBparser: include.libxml.h.DOCBparser
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.HTMLparser: include.libxml.h.HTMLparser
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.HTMLtree: include.libxml.h.HTMLtree
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.SAX: include.libxml.h.SAX
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.SAX2: include.libxml.h.SAX2
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.c14n: include.libxml.h.c14n
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.catalog: include.libxml.h.catalog
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.chvalid: include.libxml.h.chvalid
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.debugXML: include.libxml.h.debugXML
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.dict: include.libxml.h.dict
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.encoding: include.libxml.h.encoding
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.entities: include.libxml.h.entities
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.globals: include.libxml.h.globals
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.hash: include.libxml.h.hash
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.list: include.libxml.h.list
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.nanoftp: include.libxml.h.nanoftp
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.nanohttp: include.libxml.h.nanohttp
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.parser: include.libxml.h.parser
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.parserInternals: include.libxml.h.parserInternals
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.relaxng: include.libxml.h.relaxng
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.schemasInternals: include.libxml.h.schemasInternals
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.schematron: include.libxml.h.schematron
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.threads: include.libxml.h.threads
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.tree: include.libxml.h.tree
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.uri: include.libxml.h.uri
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.valid: include.libxml.h.valid
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.xinclude: include.libxml.h.xinclude
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.xlink: include.libxml.h.xlink
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.xmlIO: include.libxml.h.xmlIO
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.xmlautomata: include.libxml.h.xmlautomata
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.xmlerror: include.libxml.h.xmlerror
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.xmlexports: include.libxml.h.xmlexports
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.xmlmemory: include.libxml.h.xmlmemory
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.xmlmodule: include.libxml.h.xmlmodule
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.xmlreader: include.libxml.h.xmlreader
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.xmlregexp: include.libxml.h.xmlregexp
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.xmlsave: include.libxml.h.xmlsave
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.xmlschemas: include.libxml.h.xmlschemas
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.xmlschemastypes: include.libxml.h.xmlschemastypes
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.xmlstring: include.libxml.h.xmlstring
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.xmlunicode: include.libxml.h.xmlunicode
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.xmlversion: include.libxml.h.xmlversion
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.xmlwriter: include.libxml.h.xmlwriter
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.xpath: include.libxml.h.xpath
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.xpathInternals: include.libxml.h.xpathInternals
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.xpointer: include.libxml.h.xpointer
+        ${CP} $? $@ ${CPFLAGS}
+
+#---------------------------------------------------------------------------
+# Dynamic dependencies:
