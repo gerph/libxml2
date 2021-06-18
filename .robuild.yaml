@@ -22,6 +22,7 @@ jobs:
     # The build will terminate if any command returns a non-0 return code or an error.
     script:
       - dir RISCOS
+      - amu -f MakefileLib oz32.xpath
       - amu -f MakefileLib export
       - amu -f MakefileTool TARGET=xmlLint
       - amu -f MakefileTool TARGET=xmlCatalog
