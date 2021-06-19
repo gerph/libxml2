@@ -1,7 +1,7 @@
 /**
  * uri.c: set of generic URI related routines 
  *
- * Reference: RFC 2396
+ * Reference: RFCs 2396, 2732 and 2373
  *
  * See Copyright for the status of this software.
  *
@@ -46,10 +46,12 @@
  */
 #define IS_UPALPHA(x) (((x) >= 'A') && ((x) <= 'Z'))
 
+#ifdef IS_DIGIT
+#undef IS_DIGIT
+#endif
 /*
  * digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
  */
-
 #define IS_DIGIT(x) (((x) >= '0') && ((x) <= '9'))
 
 /*
@@ -76,12 +78,14 @@
 
 
 /*
- * reserved = ";" | "/" | "?" | ":" | "@" | "&" | "=" | "+" | "$" | ","
+ * reserved = ";" | "/" | "?" | ":" | "@" | "&" | "=" | "+" | "$" | "," |
+ * 	      "[" | "]"
  */
 
 #define IS_RESERVED(x) (((x) == ';') || ((x) == '/') || ((x) == '?') ||	\
         ((x) == ':') || ((x) == '@') || ((x) == '&') || ((x) == '=') ||	\
-	((x) == '+') || ((x) == '$') || ((x) == ','))
+	((x) == '+') || ((x) == '$') || ((x) == ',') || ((x) == '[') || \
+	((x) == ']'))
 
 /*
  * unreserved = alphanum | mark
@@ -157,7 +161,7 @@
 	            (IS_RESERVED(*(p))))
 
 /*                                                                              
-* unwise = "{" | "}" | "|" | "\" | "^" | "[" | "]" | "`"
+* unwise = "{" | "}" | "|" | "\" | "^" | "`"
 */                                                                             
 
 #define IS_UNWISE(p)                                                    \
@@ -180,6 +184,8 @@
  *
  * path          = [ abs_path | opaque_part ]
  */
+
+#define STRNDUP(s, n) (char *) xmlStrndup((const xmlChar *)(s), (n))
 
 /************************************************************************
  *									*
@@ -415,6 +421,34 @@ xmlSaveUri(xmlURIPtr uri) {
 	}
 	if (uri->path != NULL) {
 	    p = uri->path;
+	    /*
+	     * the colon in file:///d: should not be escaped or
+	     * Windows accesses fail later.
+	     */
+	    if ((uri->scheme != NULL) &&
+		(p[0] == '/') &&
+		(((p[1] >= 'a') && (p[1] <= 'z')) ||
+		 ((p[1] >= 'A') && (p[1] <= 'Z'))) &&
+		(p[2] == ':') &&
+#ifdef __riscos
+	        (xmlStrEqual((void*)uri->scheme, BAD_CAST "file"))) {
+#else
+            (xmlStrEqual(uri->scheme, BAD_CAST "file"))) {
+#endif
+		if (len + 3 >= max) {
+		    max *= 2;
+		    ret = (xmlChar *) xmlRealloc(ret,
+			    (max + 1) * sizeof(xmlChar));
+		    if (ret == NULL) {
+			xmlGenericError(xmlGenericErrorContext,
+				"xmlSaveUri: out of memory\n");
+			return(NULL);
+		    }
+		}
+		ret[len++] = *p++;
+		ret[len++] = *p++;
+		ret[len++] = *p++;
+	    }
 	    while (*p != 0) {
 		if (len + 3 >= max) {
 		    max *= 2;
@@ -440,7 +474,33 @@ xmlSaveUri(xmlURIPtr uri) {
 		}
 	    }
 	}
-	if (uri->query != NULL) {
+	if (uri->query_raw != NULL) {
+	    if (len + 1 >= max) {
+		max *= 2;
+		ret = (xmlChar *) xmlRealloc(ret,
+			(max + 1) * sizeof(xmlChar));
+		if (ret == NULL) {
+		    xmlGenericError(xmlGenericErrorContext,
+			    "xmlSaveUri: out of memory\n");
+		    return(NULL);
+		}
+	    }
+	    ret[len++] = '?';
+	    p = uri->query_raw;
+	    while (*p != 0) {
+		if (len + 1 >= max) {
+		    max *= 2;
+		    ret = (xmlChar *) xmlRealloc(ret,
+			    (max + 1) * sizeof(xmlChar));
+		    if (ret == NULL) {
+			xmlGenericError(xmlGenericErrorContext,
+				"xmlSaveUri: out of memory\n");
+			return(NULL);
+		    }
+		}
+		ret[len++] = *p++;
+	    }
+	} else if (uri->query != NULL) {
 	    if (len + 3 >= max) {
 		max *= 2;
 		ret = (xmlChar *) xmlRealloc(ret,
@@ -529,7 +589,7 @@ xmlSaveUri(xmlURIPtr uri) {
  * @stream:  a FILE* for the output
  * @uri:  pointer to an xmlURI
  *
- * Prints the URI in the stream @steam.
+ * Prints the URI in the stream @stream.
  */
 void
 xmlPrintURI(FILE *stream, xmlURIPtr uri) {
@@ -568,6 +628,8 @@ xmlCleanURI(xmlURIPtr uri) {
     uri->authority = NULL;
     if (uri->query != NULL) xmlFree(uri->query);
     uri->query = NULL;
+    if (uri->query_raw != NULL) xmlFree(uri->query_raw);
+    uri->query_raw = NULL;
 }
 
 /**
@@ -588,6 +650,7 @@ xmlFreeURI(xmlURIPtr uri) {
     if (uri->opaque != NULL) xmlFree(uri->opaque);
     if (uri->authority != NULL) xmlFree(uri->authority);
     if (uri->query != NULL) xmlFree(uri->query);
+    if (uri->query_raw != NULL) xmlFree(uri->query_raw);
     xmlFree(uri);
 }
 
@@ -785,16 +848,27 @@ xmlNormalizeURIPath(char *path) {
     return(0);
 }
 
+static int is_hex(char c) {
+    if (((c >= '0') && (c <= '9')) ||
+        ((c >= 'a') && (c <= 'f')) ||
+        ((c >= 'A') && (c <= 'F')))
+	return(1);
+    return(0);
+}
+
 /**
  * xmlURIUnescapeString:
  * @str:  the string to unescape
  * @len:   the length in bytes to unescape (or <= 0 to indicate full string)
  * @target:  optional destination buffer
  *
- * Unescaping routine, does not do validity checks !
- * Output is direct unsigned char translation of %XX values (no encoding)
+ * Unescaping routine, but does not check that the string is an URI. The
+ * output is a direct unsigned char translation of %XX values (no encoding)
+ * Note that the length of the result can only be smaller or same size as
+ * the input string.
  *
- * Returns an copy of the string, but unescaped
+ * Returns a copy of the string, but unescaped, will return NULL only in case
+ * of error
  */
 char *
 xmlURIUnescapeString(const char *str, int len, char *target) {
@@ -818,7 +892,7 @@ xmlURIUnescapeString(const char *str, int len, char *target) {
     in = str;
     out = ret;
     while(len > 0) {
-	if (*in == '%') {
+	if ((len > 2) && (*in == '%') && (is_hex(in[1])) && (is_hex(in[2]))) {
 	    in++;
 	    if ((*in >= '0') && (*in <= '9')) 
 	        *out = (*in - '0');
@@ -864,6 +938,8 @@ xmlURIEscapeStr(const xmlChar *str, const xmlChar *list) {
 
     if (str == NULL)
 	return(NULL);
+    if (str[0] == 0)
+	return(xmlStrdup(str));
     len = xmlStrlen(str);
     if (!(len > 0)) return(NULL);
 
@@ -980,6 +1056,7 @@ xmlURIEscape(const xmlChar * str)
     if (uri->user) {
         segment = xmlURIEscapeStr(BAD_CAST uri->user, BAD_CAST ";:&=+$,");
         NULLCHK(segment)
+		ret = xmlStrcat(ret,BAD_CAST "//");	
         ret = xmlStrcat(ret, segment);
         ret = xmlStrcat(ret, BAD_CAST "@");
         xmlFree(segment);
@@ -988,7 +1065,8 @@ xmlURIEscape(const xmlChar * str)
     if (uri->server) {
         segment = xmlURIEscapeStr(BAD_CAST uri->server, BAD_CAST "/?;:@");
         NULLCHK(segment)
-        ret = xmlStrcat(ret, BAD_CAST "//");
+		if (uri->user == NULL)
+       		ret = xmlStrcat(ret, BAD_CAST "//");
         ret = xmlStrcat(ret, segment);
         xmlFree(segment);
     }
@@ -1009,7 +1087,11 @@ xmlURIEscape(const xmlChar * str)
         xmlFree(segment);
     }
 
-    if (uri->query) {
+    if (uri->query_raw) {
+        ret = xmlStrcat(ret, BAD_CAST "?");
+        ret = xmlStrcat(ret, BAD_CAST uri->query_raw);
+    }
+    else if (uri->query) {
         segment =
             xmlURIEscapeStr(BAD_CAST uri->query, BAD_CAST ";/?:@&=+,$");
         NULLCHK(segment)
@@ -1060,17 +1142,22 @@ xmlURIEscape(const xmlChar * str)
 static int
 xmlParseURIFragment(xmlURIPtr uri, const char **str)
 {
-    const char *cur = *str;
-
+    const char *cur;
+    
     if (str == NULL)
         return (-1);
+
+    cur = *str;
 
     while (IS_URIC(cur) || IS_UNWISE(cur))
         NEXT(cur);
     if (uri != NULL) {
         if (uri->fragment != NULL)
             xmlFree(uri->fragment);
-        uri->fragment = xmlURIUnescapeString(*str, cur - *str, NULL);
+	if (uri->cleanup & 2)
+	    uri->fragment = STRNDUP(*str, cur - *str);
+	else
+	    uri->fragment = xmlURIUnescapeString(*str, cur - *str, NULL);
     }
     *str = cur;
     return (0);
@@ -1090,17 +1177,30 @@ xmlParseURIFragment(xmlURIPtr uri, const char **str)
 static int
 xmlParseURIQuery(xmlURIPtr uri, const char **str)
 {
-    const char *cur = *str;
+    const char *cur;
 
     if (str == NULL)
         return (-1);
 
-    while (IS_URIC(cur) || ((uri != NULL) && (uri->cleanup) && (IS_UNWISE(cur))))
+    cur = *str;
+
+    while ((IS_URIC(cur)) ||
+           ((uri != NULL) && (uri->cleanup & 1) && (IS_UNWISE(cur))))
         NEXT(cur);
     if (uri != NULL) {
         if (uri->query != NULL)
             xmlFree(uri->query);
-        uri->query = xmlURIUnescapeString(*str, cur - *str, NULL);
+	if (uri->cleanup & 2)
+	    uri->query = STRNDUP(*str, cur - *str);
+	else
+	    uri->query = xmlURIUnescapeString(*str, cur - *str, NULL);
+
+	/* Save the raw bytes of the query as well.
+	 * See: http://mail.gnome.org/archives/xml/2007-April/thread.html#00114
+	 */
+	if (uri->query_raw != NULL)
+	    xmlFree (uri->query_raw);
+	uri->query_raw = STRNDUP (*str, cur - *str);
     }
     *str = cur;
     return (0);
@@ -1131,8 +1231,7 @@ xmlParseURIScheme(xmlURIPtr uri, const char **str) {
     while (IS_SCHEME(*cur)) cur++;
     if (uri != NULL) {
 	if (uri->scheme != NULL) xmlFree(uri->scheme);
-	/* !!! strndup */
-	uri->scheme = xmlURIUnescapeString(*str, cur - *str, NULL);
+	uri->scheme = STRNDUP(*str, cur - *str);
     }
     *str = cur;
     return(0);
@@ -1158,16 +1257,21 @@ xmlParseURIOpaquePart(xmlURIPtr uri, const char **str)
         return (-1);
 
     cur = *str;
-    if (!(IS_URIC_NO_SLASH(cur) || ((uri != NULL) && (uri->cleanup) && (IS_UNWISE(cur))))) {
+    if (!((IS_URIC_NO_SLASH(cur)) ||
+          ((uri != NULL) && (uri->cleanup & 1) && (IS_UNWISE(cur))))) {
         return (3);
     }
     NEXT(cur);
-    while (IS_URIC(cur) || ((uri != NULL) && (uri->cleanup) && (IS_UNWISE(cur))))
+    while ((IS_URIC(cur)) ||
+           ((uri != NULL) && (uri->cleanup & 1) && (IS_UNWISE(cur))))
         NEXT(cur);
     if (uri != NULL) {
         if (uri->opaque != NULL)
             xmlFree(uri->opaque);
-        uri->opaque = xmlURIUnescapeString(*str, cur - *str, NULL);
+	if (uri->cleanup & 2)
+	    uri->opaque = STRNDUP(*str, cur - *str);
+	else
+	    uri->opaque = xmlURIUnescapeString(*str, cur - *str, NULL);
     }
     *str = cur;
     return (0);
@@ -1185,11 +1289,16 @@ xmlParseURIOpaquePart(xmlURIPtr uri, const char **str)
  * userinfo      = *( unreserved | escaped |
  *                       ";" | ":" | "&" | "=" | "+" | "$" | "," )
  * hostport      = host [ ":" port ]
- * host          = hostname | IPv4address
+ * host          = hostname | IPv4address | IPv6reference
  * hostname      = *( domainlabel "." ) toplabel [ "." ]
  * domainlabel   = alphanum | alphanum *( alphanum | "-" ) alphanum
  * toplabel      = alpha | alpha *( alphanum | "-" ) alphanum
- * IPv4address   = 1*digit "." 1*digit "." 1*digit "." 1*digit
+ * IPv6reference = "[" IPv6address "]"
+ * IPv6address   = hexpart [ ":" IPv4address ]
+ * IPv4address   = 1*3digit "." 1*3digit "." 1*3digit "." 1*3digit
+ * hexpart       = hexseq | hexseq "::" [ hexseq ]| "::" [ hexseq ]
+ * hexseq        = hex4 *( ":" hex4)
+ * hex4          = 1*4hexdig
  * port          = *digit
  *
  * Returns 0 or the error code
@@ -1198,7 +1307,8 @@ static int
 xmlParseURIServer(xmlURIPtr uri, const char **str) {
     const char *cur;
     const char *host, *tmp;
-    const int IPmax = 4;
+    const int IPV4max = 4;
+    const int IPV6max = 8;
     int oct;
 
     if (str == NULL)
@@ -1207,13 +1317,16 @@ xmlParseURIServer(xmlURIPtr uri, const char **str) {
     cur = *str;
 
     /*
-     * is there an userinfo ?
+     * is there a userinfo ?
      */
     while (IS_USERINFO(cur)) NEXT(cur);
     if (*cur == '@') {
 	if (uri != NULL) {
 	    if (uri->user != NULL) xmlFree(uri->user);
-	    uri->user = xmlURIUnescapeString(*str, cur - *str, NULL);
+	    if (uri->cleanup & 2)
+		uri->user = STRNDUP(*str, cur - *str);
+	    else
+		uri->user = xmlURIUnescapeString(*str, cur - *str, NULL);
 	}
 	cur++;
     } else {
@@ -1238,21 +1351,60 @@ xmlParseURIServer(xmlURIPtr uri, const char **str) {
 	return(0);
     }
     /*
-     * host part of hostport can derive either an IPV4 address
-     * or an unresolved name. Check the IP first, it easier to detect
-     * errors if wrong one
+     * host part of hostport can denote an IPV4 address, an IPV6 address
+     * or an unresolved name. Check the IP first, its easier to detect
+     * errors if wrong one.
+     * An IPV6 address must start with a '[' and end with a ']'.
      */
-    for (oct = 0; oct < IPmax; ++oct) {
-        if (*cur == '.')
-            return(3); /* e.g. http://.xml/ or http://18.29..30/ */
-        while(IS_DIGIT(*cur)) cur++;
-        if (oct == (IPmax-1))
-            continue;
-        if (*cur != '.')
-	    break;
-        cur++;
+    if (*cur == '[') {
+	int compress=0;
+	cur++;
+	for (oct = 0; oct < IPV6max; ++oct) {
+	    if (*cur == ':') {
+		if (compress)
+		    return(3);	/* multiple compression attempted */
+		if (!oct) { 	/* initial char is compression */
+		    if (*++cur != ':')
+			return(3);
+		}
+		compress = 1;	/* set compression-encountered flag */
+		cur++;		/* skip over the second ':' */
+		continue;
+	    }
+	    while(IS_HEX(*cur)) cur++;
+	    if (oct == (IPV6max-1))
+		continue;
+	    if (*cur != ':')
+		break;
+	    cur++;
+	}
+	if ((!compress) && (oct != IPV6max))
+	    return(3);
+	if (*cur != ']')
+	    return(3);
+	if (uri != NULL) {
+	    if (uri->server != NULL) xmlFree(uri->server);
+	    uri->server = (char *)xmlStrndup((xmlChar *)host+1,
+			(cur-host)-1);
+	}
+	cur++;
+    } else {
+	/*
+	 * Not IPV6, maybe IPV4
+	 */
+	for (oct = 0; oct < IPV4max; ++oct) {
+            if (*cur == '.') 
+                return(3); /* e.g. http://.xml/ or http://18.29..30/ */
+            while(IS_DIGIT(*cur)) cur++;
+            if (oct == (IPV4max-1))
+                continue;
+            if (*cur != '.')
+	        break;
+            cur++;
+	}
     }
-    if (oct < IPmax || (*cur == '.' && cur++) || IS_ALPHA(*cur)) {
+    if ((host[0] != '[') && (oct < IPV4max || (*cur == '.' && cur++) ||
+			     IS_ALPHA(*cur))) {
         /* maybe host_name */
         if (!IS_ALPHANUM(*cur))
             return(4); /* e.g. http://xml.$oft */
@@ -1286,8 +1438,13 @@ xmlParseURIServer(xmlURIPtr uri, const char **str) {
     if (uri != NULL) {
 	if (uri->authority != NULL) xmlFree(uri->authority);
 	uri->authority = NULL;
-	if (uri->server != NULL) xmlFree(uri->server);
-	uri->server = xmlURIUnescapeString(host, cur - host, NULL);
+	if (host[0] != '[') {	/* it's not an IPV6 addr */
+	    if (uri->server != NULL) xmlFree(uri->server);
+	    if (uri->cleanup & 2)
+		uri->server = STRNDUP(host, cur - host);
+	    else
+		uri->server = xmlURIUnescapeString(host, cur - host, NULL);
+	}
     }
     /*
      * finish by checking for a port presence.
@@ -1329,16 +1486,21 @@ xmlParseURIRelSegment(xmlURIPtr uri, const char **str)
         return (-1);
 
     cur = *str;
-    if (!(IS_SEGMENT(cur) || ((uri != NULL) && (uri->cleanup) && (IS_UNWISE(cur))))) {
+    if (!((IS_SEGMENT(cur)) ||
+          ((uri != NULL) && (uri->cleanup & 1) && (IS_UNWISE(cur))))) {
         return (3);
     }
     NEXT(cur);
-    while (IS_SEGMENT(cur) || ((uri != NULL) && (uri->cleanup) && (IS_UNWISE(cur))))
+    while ((IS_SEGMENT(cur)) ||
+           ((uri != NULL) && (uri->cleanup & 1) && (IS_UNWISE(cur))))
         NEXT(cur);
     if (uri != NULL) {
         if (uri->path != NULL)
             xmlFree(uri->path);
-        uri->path = xmlURIUnescapeString(*str, cur - *str, NULL);
+	if (uri->cleanup & 2)
+	    uri->path = STRNDUP(*str, cur - *str);
+	else
+	    uri->path = xmlURIUnescapeString(*str, cur - *str, NULL);
     }
     *str = cur;
     return (0);
@@ -1369,11 +1531,13 @@ xmlParseURIPathSegments(xmlURIPtr uri, const char **str, int slash)
     cur = *str;
 
     do {
-        while (IS_PCHAR(cur) || ((uri != NULL) && (uri->cleanup) && (IS_UNWISE(cur))))
+        while ((IS_PCHAR(cur)) ||
+	       ((uri != NULL) && (uri->cleanup & 1) && (IS_UNWISE(cur))))
             NEXT(cur);
         while (*cur == ';') {
             cur++;
-            while (IS_PCHAR(cur) || ((uri != NULL) && (uri->cleanup) && (IS_UNWISE(cur))))
+            while ((IS_PCHAR(cur)) ||
+	           ((uri != NULL) && (uri->cleanup & 1) && (IS_UNWISE(cur))))
                 NEXT(cur);
         }
         if (*cur != '/')
@@ -1397,8 +1561,8 @@ xmlParseURIPathSegments(xmlURIPtr uri, const char **str, int slash)
         }
         path = (char *) xmlMallocAtomic(len + 1);
         if (path == NULL) {
-            xmlGenericError(xmlGenericErrorContext,
-                            "xmlParseURIPathSegments: out of memory\n");
+	    xmlGenericError(xmlGenericErrorContext,
+	    		    "xmlParseURIPathSegments: out of memory\n");
             *str = cur;
             return (-1);
         }
@@ -1409,8 +1573,13 @@ xmlParseURIPathSegments(xmlURIPtr uri, const char **str, int slash)
             len2++;
         }
         path[len2] = 0;
-        if (cur - *str > 0)
-            xmlURIUnescapeString(*str, cur - *str, &path[len2]);
+        if (cur - *str > 0) {
+	    if (uri->cleanup & 2) {
+	        memcpy(&path[len2], *str, cur - *str);
+		path[len2 + (cur - *str)] = 0;
+	    } else
+		xmlURIUnescapeString(*str, cur - *str, &path[len2]);
+	}
         if (uri->path != NULL)
             xmlFree(uri->path);
         uri->path = path;
@@ -1475,7 +1644,10 @@ xmlParseURIAuthority(xmlURIPtr uri, const char **str) {
 	if (uri->user != NULL) xmlFree(uri->user);
 	uri->user = NULL;
 	if (uri->authority != NULL) xmlFree(uri->authority);
-	uri->authority = xmlURIUnescapeString(*str, cur - *str, NULL);
+	if (uri->cleanup & 2)
+	    uri->authority = STRNDUP(*str, cur - *str);
+	else
+	    uri->authority = xmlURIUnescapeString(*str, cur - *str, NULL);
     }
     *str = cur;
     return(0);
@@ -1678,7 +1850,7 @@ xmlParseURIReference(xmlURIPtr uri, const char *str) {
  * 
  * URI-reference = [ absoluteURI | relativeURI ] [ "#" fragment ]
  *
- * Returns a newly build xmlURIPtr or NULL in case of error
+ * Returns a newly built xmlURIPtr or NULL in case of error
  */
 xmlURIPtr
 xmlParseURI(const char *str) {
@@ -1689,6 +1861,38 @@ xmlParseURI(const char *str) {
 	return(NULL);
     uri = xmlCreateURI();
     if (uri != NULL) {
+	ret = xmlParseURIReference(uri, str);
+        if (ret) {
+	    xmlFreeURI(uri);
+	    return(NULL);
+	}
+    }
+    return(uri);
+}
+
+/**
+ * xmlParseURIRaw:
+ * @str:  the URI string to analyze
+ * @raw:  if 1 unescaping of URI pieces are disabled
+ *
+ * Parse an URI but allows to keep intact the original fragments.
+ * 
+ * URI-reference = [ absoluteURI | relativeURI ] [ "#" fragment ]
+ *
+ * Returns a newly built xmlURIPtr or NULL in case of error
+ */
+xmlURIPtr
+xmlParseURIRaw(const char *str, int raw) {
+    xmlURIPtr uri;
+    int ret;
+
+    if (str == NULL)
+	return(NULL);
+    uri = xmlCreateURI();
+    if (uri != NULL) {
+        if (raw) {
+	    uri->cleanup |= 2;
+	}
 	ret = xmlParseURIReference(uri, str);
         if (ret) {
 	    xmlFreeURI(uri);
@@ -1810,8 +2014,12 @@ xmlBuildURI(const xmlChar *URI, const xmlChar *base) {
 	}
 	if (bas->path != NULL)
 	    res->path = xmlMemStrdup(bas->path);
-	if (ref->query != NULL)
+	if (ref->query_raw != NULL)
+	    res->query_raw = xmlMemStrdup (ref->query_raw);
+	else if (ref->query != NULL)
 	    res->query = xmlMemStrdup(ref->query);
+	else if (bas->query_raw != NULL)
+	    res->query_raw = xmlMemStrdup(bas->query_raw);
 	else if (bas->query != NULL)
 	    res->query = xmlMemStrdup(bas->query);
 	if (ref->fragment != NULL)
@@ -1832,7 +2040,9 @@ xmlBuildURI(const xmlChar *URI, const xmlChar *base) {
     if (bas->scheme != NULL)
 	res->scheme = xmlMemStrdup(bas->scheme);
  
-    if (ref->query != NULL)
+    if (ref->query_raw != NULL)
+	res->query_raw = xmlMemStrdup(ref->query_raw);
+    else if (ref->query != NULL)
 	res->query = xmlMemStrdup(ref->query);
     if (ref->fragment != NULL)
 	res->fragment = xmlMemStrdup(ref->fragment);
@@ -1962,6 +2172,247 @@ done:
 }
 
 /**
+ * xmlBuildRelativeURI:
+ * @URI:  the URI reference under consideration
+ * @base:  the base value
+ *
+ * Expresses the URI of the reference in terms relative to the
+ * base.  Some examples of this operation include:
+ *     base = "http://site1.com/docs/book1.html"
+ *        URI input                        URI returned
+ *     docs/pic1.gif                    pic1.gif
+ *     docs/img/pic1.gif                img/pic1.gif
+ *     img/pic1.gif                     ../img/pic1.gif
+ *     http://site1.com/docs/pic1.gif   pic1.gif
+ *     http://site2.com/docs/pic1.gif   http://site2.com/docs/pic1.gif
+ *
+ *     base = "docs/book1.html"
+ *        URI input                        URI returned
+ *     docs/pic1.gif                    pic1.gif
+ *     docs/img/pic1.gif                img/pic1.gif
+ *     img/pic1.gif                     ../img/pic1.gif
+ *     http://site1.com/docs/pic1.gif   http://site1.com/docs/pic1.gif
+ *
+ *
+ * Note: if the URI reference is really wierd or complicated, it may be
+ *       worthwhile to first convert it into a "nice" one by calling
+ *       xmlBuildURI (using 'base') before calling this routine,
+ *       since this routine (for reasonable efficiency) assumes URI has
+ *       already been through some validation.
+ *
+ * Returns a new URI string (to be freed by the caller) or NULL in case
+ * error.
+ */
+xmlChar *
+xmlBuildRelativeURI (const xmlChar * URI, const xmlChar * base)
+{
+    xmlChar *val = NULL;
+    int ret;
+    int ix;
+    int pos = 0;
+    int nbslash = 0;
+    int len;
+    xmlURIPtr ref = NULL;
+    xmlURIPtr bas = NULL;
+    xmlChar *bptr, *uptr, *vptr;
+    int remove_path = 0;
+
+    if ((URI == NULL) || (*URI == 0))
+	return NULL;
+
+    /*
+     * First parse URI into a standard form
+     */
+    ref = xmlCreateURI ();
+    if (ref == NULL)
+	return NULL;
+    /* If URI not already in "relative" form */
+    if (URI[0] != '.') {
+	ret = xmlParseURIReference (ref, (const char *) URI);
+	if (ret != 0)
+	    goto done;		/* Error in URI, return NULL */
+    } else
+	ref->path = (char *)xmlStrdup(URI);
+
+    /*
+     * Next parse base into the same standard form
+     */
+    if ((base == NULL) || (*base == 0)) {
+	val = xmlStrdup (URI);
+	goto done;
+    }
+    bas = xmlCreateURI ();
+    if (bas == NULL)
+	goto done;
+    if (base[0] != '.') {
+	ret = xmlParseURIReference (bas, (const char *) base);
+	if (ret != 0)
+	    goto done;		/* Error in base, return NULL */
+    } else
+	bas->path = (char *)xmlStrdup(base);
+
+    /*
+     * If the scheme / server on the URI differs from the base,
+     * just return the URI
+     */
+    if ((ref->scheme != NULL) &&
+	((bas->scheme == NULL) ||
+	 (xmlStrcmp ((xmlChar *)bas->scheme, (xmlChar *)ref->scheme)) ||
+	 (xmlStrcmp ((xmlChar *)bas->server, (xmlChar *)ref->server)))) {
+	val = xmlStrdup (URI);
+	goto done;
+    }
+    if (xmlStrEqual((xmlChar *)bas->path, (xmlChar *)ref->path)) {
+	val = xmlStrdup(BAD_CAST "");
+	goto done;
+    }
+    if (bas->path == NULL) {
+	val = xmlStrdup((xmlChar *)ref->path);
+	goto done;
+    }
+    if (ref->path == NULL) {
+        ref->path = (char *) "/";
+	remove_path = 1;
+    }
+
+    /*
+     * At this point (at last!) we can compare the two paths
+     *
+     * First we take care of the special case where either of the
+     * two path components may be missing (bug 316224)
+     */
+    if (bas->path == NULL) {
+	if (ref->path != NULL) {
+	    uptr = (xmlChar *) ref->path;
+	    if (*uptr == '/')
+		uptr++;
+	    /* exception characters from xmlSaveUri */
+	    val = xmlURIEscapeStr(uptr, BAD_CAST "/;&=+$,");
+	}
+	goto done;
+    }
+    bptr = (xmlChar *)bas->path;
+    if (ref->path == NULL) {
+	for (ix = 0; bptr[ix] != 0; ix++) {
+	    if (bptr[ix] == '/')
+		nbslash++;
+	}
+	uptr = NULL;
+	len = 1;	/* this is for a string terminator only */
+    } else {
+    /*
+     * Next we compare the two strings and find where they first differ
+     */
+	if ((ref->path[pos] == '.') && (ref->path[pos+1] == '/'))
+            pos += 2;
+	if ((*bptr == '.') && (bptr[1] == '/'))
+            bptr += 2;
+	else if ((*bptr == '/') && (ref->path[pos] != '/'))
+	    bptr++;
+	while ((bptr[pos] == ref->path[pos]) && (bptr[pos] != 0))
+	    pos++;
+
+	if (bptr[pos] == ref->path[pos]) {
+	    val = xmlStrdup(BAD_CAST "");
+	    goto done;		/* (I can't imagine why anyone would do this) */
+	}
+
+	/*
+	 * In URI, "back up" to the last '/' encountered.  This will be the
+	 * beginning of the "unique" suffix of URI
+	 */
+	ix = pos;
+	if ((ref->path[ix] == '/') && (ix > 0))
+	    ix--;
+	else if ((ref->path[ix] == 0) && (ix > 1) && (ref->path[ix - 1] == '/'))
+	    ix -= 2;
+	for (; ix > 0; ix--) {
+	    if (ref->path[ix] == '/')
+		break;
+	}
+	if (ix == 0) {
+	    uptr = (xmlChar *)ref->path;
+	} else {
+	    ix++;
+	    uptr = (xmlChar *)&ref->path[ix];
+	}
+
+	/*
+	 * In base, count the number of '/' from the differing point
+	 */
+	if (bptr[pos] != ref->path[pos]) {/* check for trivial URI == base */
+	    for (; bptr[ix] != 0; ix++) {
+		if (bptr[ix] == '/')
+		    nbslash++;
+	    }
+	}
+	len = xmlStrlen (uptr) + 1;
+    }
+    
+    if (nbslash == 0) {
+	if (uptr != NULL)
+	    /* exception characters from xmlSaveUri */
+	    val = xmlURIEscapeStr(uptr, BAD_CAST "/;&=+$,");
+	goto done;
+    }
+
+    /*
+     * Allocate just enough space for the returned string -
+     * length of the remainder of the URI, plus enough space
+     * for the "../" groups, plus one for the terminator
+     */
+    val = (xmlChar *) xmlMalloc (len + 3 * nbslash);
+    if (val == NULL) {
+	xmlGenericError(xmlGenericErrorContext,
+		"xmlBuildRelativeURI: out of memory\n");
+	goto done;
+    }
+    vptr = val;
+    /*
+     * Put in as many "../" as needed
+     */
+    for (; nbslash>0; nbslash--) {
+	*vptr++ = '.';
+	*vptr++ = '.';
+	*vptr++ = '/';
+    }
+    /*
+     * Finish up with the end of the URI
+     */
+    if (uptr != NULL) {
+        if ((vptr > val) && (len > 0) &&
+	    (uptr[0] == '/') && (vptr[-1] == '/')) {
+	    memcpy (vptr, uptr + 1, len - 1);
+	    vptr[len - 2] = 0;
+	} else {
+	    memcpy (vptr, uptr, len);
+	    vptr[len - 1] = 0;
+	}
+    } else {
+	vptr[len - 1] = 0;
+    }
+
+    /* escape the freshly-built path */
+    vptr = val;
+	/* exception characters from xmlSaveUri */
+    val = xmlURIEscapeStr(vptr, BAD_CAST "/;&=+$,");
+    xmlFree(vptr);
+
+done:
+    /*
+     * Free the working variables
+     */
+    if (remove_path != 0)
+        ref->path = NULL;
+    if (ref != NULL)
+	xmlFreeURI (ref);
+    if (bas != NULL)
+	xmlFreeURI (bas);
+
+    return val;
+}
+
+/**
  * xmlCanonicPath:
  * @path:  the resource locator in a filesystem notation
  *
@@ -1977,52 +2428,174 @@ done:
 	 (((p[0] >= 'a') && (p[0] <= 'z')) ||			\
 	  ((p[0] >= 'A') && (p[0] <= 'Z'))) &&			\
 	 (p[1] == ':') && ((p[2] == '/') || (p[2] == '\\')))
-xmlChar*
+xmlChar *
 xmlCanonicPath(const xmlChar *path)
 {
+/*
+ * For Windows implementations, additional work needs to be done to
+ * replace backslashes in pathnames with "forward slashes"
+ */
 #if defined(_WIN32) && !defined(__CYGWIN__)    
     int len = 0;
     int i = 0;
     xmlChar *p = NULL;
 #endif
-    xmlChar *ret;
     xmlURIPtr uri;
+    xmlChar *ret;
+    const xmlChar *absuri;
 
     if (path == NULL)
 	return(NULL);
+
+    /* sanitize filename starting with // so it can be used as URI */
+    if ((path[0] == '/') && (path[1] == '/') && (path[2] != '/'))
+        path++;
+
     if ((uri = xmlParseURI((const char *) path)) != NULL) {
 	xmlFreeURI(uri);
 	return xmlStrdup(path);
     }
 
+    /* Check if this is an "absolute uri" */
+    absuri = xmlStrstr(path, BAD_CAST "://");
+    if (absuri != NULL) {
+        int l, j;
+	unsigned char c;
+	xmlChar *escURI;
+
+        /*
+	 * this looks like an URI where some parts have not been
+	 * escaped leading to a parsing problem.  Check that the first
+	 * part matches a protocol.
+	 */
+	l = absuri - path;
+	/* Bypass if first part (part before the '://') is > 20 chars */
+	if ((l <= 0) || (l > 20))
+	    goto path_processing;
+	/* Bypass if any non-alpha characters are present in first part */
+	for (j = 0;j < l;j++) {
+	    c = path[j];
+	    if (!(((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z'))))
+	        goto path_processing;
+	}
+
+	/* Escape all except the characters specified in the supplied path */
+        escURI = xmlURIEscapeStr(path, BAD_CAST ":/?_.#&;=");
+	if (escURI != NULL) {
+	    /* Try parsing the escaped path */
+	    uri = xmlParseURI((const char *) escURI);
+	    /* If successful, return the escaped string */
+	    if (uri != NULL) {
+	        xmlFreeURI(uri);
+		return escURI;
+	    }
+	}
+    }
+
+path_processing:
+/* For Windows implementations, replace backslashes with 'forward slashes' */
+#if defined(_WIN32) && !defined(__CYGWIN__)    
+    /*
+     * Create a URI structure
+     */
     uri = xmlCreateURI();
-    if (uri == NULL) {
+    if (uri == NULL) {		/* Guard against 'out of memory' */
         return(NULL);
     }
 
-#if defined(_WIN32) && !defined(__CYGWIN__)    
     len = xmlStrlen(path);
     if ((len > 2) && IS_WINDOWS_PATH(path)) {
+        /* make the scheme 'file' */
 	uri->scheme = xmlStrdup(BAD_CAST "file");
+	/* allocate space for leading '/' + path + string terminator */
 	uri->path = xmlMallocAtomic(len + 2);
+	if (uri->path == NULL) {
+	    xmlFreeURI(uri);	/* Guard agains 'out of memory' */
+	    return(NULL);
+	}
+	/* Put in leading '/' plus path */
 	uri->path[0] = '/';
 	p = uri->path + 1;
 	strncpy(p, path, len + 1);
     } else {
 	uri->path = xmlStrdup(path);
+	if (uri->path == NULL) {
+	    xmlFreeURI(uri);
+	    return(NULL);
+	}
 	p = uri->path;
     }
+    /* Now change all occurences of '\' to '/' */
     while (*p != '\0') {
 	if (*p == '\\')
 	    *p = '/';
 	p++;
     }
-#else
-    uri->path = (char *) xmlStrdup((const xmlChar *) path);
-#endif
-    
-    ret = xmlSaveUri(uri);
+
+    if (uri->scheme == NULL) {
+	ret = xmlStrdup((const xmlChar *) uri->path);
+    } else {
+	ret = xmlSaveUri(uri);
+    }
+
     xmlFreeURI(uri);
+#else
+    ret = xmlStrdup((const xmlChar *) path);
+#endif
     return(ret);
 }
 
+/**
+ * xmlPathToURI:
+ * @path:  the resource locator in a filesystem notation
+ *
+ * Constructs an URI expressing the existing path
+ *
+ * Returns a new URI, or a duplicate of the path parameter if the 
+ * construction fails. The caller is responsible for freeing the memory
+ * occupied by the returned string. If there is insufficient memory available,
+ * or the argument is NULL, the function returns NULL.
+ */
+xmlChar *
+xmlPathToURI(const xmlChar *path)
+{
+    xmlURIPtr uri;
+    xmlURI temp;
+    xmlChar *ret, *cal;
+
+    if (path == NULL)
+        return(NULL);
+
+    if ((uri = xmlParseURI((const char *) path)) != NULL) {
+	xmlFreeURI(uri);
+	return xmlStrdup(path);
+    }
+    cal = xmlCanonicPath(path);
+    if (cal == NULL)
+        return(NULL);
+#if defined(_WIN32) && !defined(__CYGWIN__)
+    /* xmlCanonicPath can return an URI on Windows (is that the intended behaviour?) 
+       If 'cal' is a valid URI allready then we are done here, as continuing would make
+       it invalid. */
+    if ((uri = xmlParseURI((const char *) cal)) != NULL) {
+	xmlFreeURI(uri);
+	return cal;
+    }
+    /* 'cal' can contain a relative path with backslashes. If that is processed
+       by xmlSaveURI, they will be escaped and the external entity loader machinery
+       will fail. So convert them to slashes. Misuse 'ret' for walking. */
+    ret = cal;
+    while (*ret != '\0') {
+	if (*ret == '\\')
+	    *ret = '/';
+	ret++;
+    }
+#endif
+    memset(&temp, 0, sizeof(temp));
+    temp.path = (char *) cal;
+    ret = xmlSaveUri(&temp);
+    xmlFree(cal);
+    return(ret);
+}
+#define bottom_uri
+#include "elfgcchack.h"

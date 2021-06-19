@@ -27,6 +27,7 @@ void xmlUpgradeOldNs(xmlDocPtr doc);
  *									*
  ************************************************************************/
 
+#ifdef LIBXML_HTML_ENABLED
 xmlChar *htmlDecodeEntities(htmlParserCtxtPtr ctxt, int len, xmlChar end,
                             xmlChar end2, xmlChar end3);
 
@@ -60,6 +61,7 @@ htmlDecodeEntities(htmlParserCtxtPtr ctxt ATTRIBUTE_UNUSED,
     }
     return (NULL);
 }
+#endif
 
 /**
  * xmlInitializePredefinedEntities:
@@ -671,7 +673,6 @@ xmlHandleEntity(xmlParserCtxtPtr ctxt ATTRIBUTE_UNUSED,
  *
  * Creation of a Namespace, the old way using PI and without scoping
  *   DEPRECATED !!!
- * It now create a namespace on the root element of the document if found.
  * Returns NULL this functionality had been removed
  */
 xmlNsPtr
@@ -1135,8 +1136,7 @@ attribute(void *ctx ATTRIBUTE_UNUSED,
 void
 startElement(void *ctx, const xmlChar * fullname, const xmlChar ** atts)
 {
-    DEPRECATED("startElement")
-        xmlSAX2StartElement(ctx, fullname, atts);
+    xmlSAX2StartElement(ctx, fullname, atts);
 }
 
 /**
@@ -1337,5 +1337,7 @@ cdataBlock(void *ctx, const xmlChar * value, int len)
     DEPRECATED("cdataBlock")
         xmlSAX2CDataBlock(ctx, value, len);
 }
+#define bottom_legacy
+#include "elfgcchack.h"
 #endif /* LIBXML_LEGACY_ENABLED */
 

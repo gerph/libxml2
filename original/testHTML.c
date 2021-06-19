@@ -54,7 +54,7 @@ static int push = 0;
 static char *encoding = NULL;
 static int options = 0;
 
-xmlSAXHandler emptySAXHandlerStruct = {
+static xmlSAXHandler emptySAXHandlerStruct = {
     NULL, /* internalSubset */
     NULL, /* isStandalone */
     NULL, /* hasInternalSubset */
@@ -89,7 +89,7 @@ xmlSAXHandler emptySAXHandlerStruct = {
     NULL  /* xmlStructuredErrorFunc */
 };
 
-xmlSAXHandlerPtr emptySAXHandler = &emptySAXHandlerStruct;
+static xmlSAXHandlerPtr emptySAXHandler = &emptySAXHandlerStruct;
 extern xmlSAXHandlerPtr debugSAXHandler;
 
 /************************************************************************
@@ -527,7 +527,7 @@ commentDebug(void *ctx ATTRIBUTE_UNUSED, const xmlChar *value)
  * Display and format a warning messages, gives file, line, position and
  * extra parameters.
  */
-static void
+static void XMLCDECL
 warningDebug(void *ctx ATTRIBUTE_UNUSED, const char *msg, ...)
 {
     va_list args;
@@ -547,7 +547,7 @@ warningDebug(void *ctx ATTRIBUTE_UNUSED, const char *msg, ...)
  * Display and format a error messages, gives file, line, position and
  * extra parameters.
  */
-static void
+static void XMLCDECL
 errorDebug(void *ctx ATTRIBUTE_UNUSED, const char *msg, ...)
 {
     va_list args;
@@ -567,7 +567,7 @@ errorDebug(void *ctx ATTRIBUTE_UNUSED, const char *msg, ...)
  * Display and format a fatalError messages, gives file, line, position and
  * extra parameters.
  */
-static void
+static void XMLCDECL
 fatalErrorDebug(void *ctx ATTRIBUTE_UNUSED, const char *msg, ...)
 {
     va_list args;
@@ -578,7 +578,7 @@ fatalErrorDebug(void *ctx ATTRIBUTE_UNUSED, const char *msg, ...)
     va_end(args);
 }
 
-xmlSAXHandler debugSAXHandlerStruct = {
+static xmlSAXHandler debugSAXHandlerStruct = {
     internalSubsetDebug,
     isStandaloneDebug,
     hasInternalSubsetDebug,
@@ -630,7 +630,9 @@ parseSAXFile(char *filename) {
 #ifdef LIBXML_PUSH_ENABLED
     if (push) {
 	FILE *f;
-#ifdef __riscos
+#if defined(_WIN32) || defined (__DJGPP__) && !defined (__CYGWIN__)
+	f = fopen(filename, "rb");
+#elif defined(__riscos)
 	f = fopen(riscosfilename(filename), "r");
 #else
 	f = fopen(filename, "r");
@@ -660,10 +662,12 @@ parseSAXFile(char *filename) {
 	    fclose(f);
 	}
 	if (!noout) {
-#ifdef __riscos
+#if defined(_WIN32) || defined (__DJGPP__) && !defined (__CYGWIN__)
+		f = fopen(filename, "rb");
+#elif defined(__riscos)
 	    f = fopen(riscosfilename(filename), "r");
 #else
-	    f = fopen(filename, "r");
+		f = fopen(filename, "r");
 #endif
 	    if (f != NULL) {
 		int res, size = 3;
@@ -715,14 +719,17 @@ parseSAXFile(char *filename) {
 
 static void
 parseAndPrintFile(char *filename) {
-    htmlDocPtr doc = NULL, tmp;
+    htmlDocPtr doc = NULL;
 
     /*
      * build an HTML tree from a string;
      */
+#ifdef LIBXML_PUSH_ENABLED
     if (push) {
 	FILE *f;
-#ifdef __riscos
+#if defined(_WIN32) || defined (__DJGPP__) && !defined (__CYGWIN__)
+	f = fopen(filename, "rb");
+#elif defined(__riscos)
 	f = fopen(riscosfilename(filename), "r");
 #else
 	f = fopen(filename, "r");
@@ -750,19 +757,26 @@ parseAndPrintFile(char *filename) {
     } else {	
 	doc = htmlReadFile(filename, NULL, options);
     }
+#else
+	doc = htmlReadFile(filename,NULL,options);
+#endif
     if (doc == NULL) {
         xmlGenericError(xmlGenericErrorContext,
 		"Could not parse %s\n", filename);
     }
 
+#ifdef LIBXML_TREE_ENABLED
     /*
      * test intermediate copy if needed.
      */
     if (copy) {
+        htmlDocPtr tmp;
+
         tmp = doc;
 	doc = xmlCopyDoc(doc, 1);
 	xmlFreeDoc(tmp);
     }
+#endif
 
 #ifdef LIBXML_OUTPUT_ENABLED
     /*

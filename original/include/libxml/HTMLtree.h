@@ -16,6 +16,7 @@
 #include <libxml/tree.h>
 #include <libxml/HTMLparser.h>
 
+#ifdef LIBXML_HTML_ENABLED
 
 #ifdef __cplusplus
 extern "C" {
@@ -74,6 +75,11 @@ XMLPUBFUN void XMLCALL
 		htmlDocDumpMemory	(xmlDocPtr cur,
 					 xmlChar **mem,
 					 int *size);
+XMLPUBFUN void XMLCALL	    
+		htmlDocDumpMemoryFormat	(xmlDocPtr cur,
+					 xmlChar **mem,
+					 int *size,
+					 int format);
 XMLPUBFUN int XMLCALL		
 		htmlDocDump		(FILE *f,
 					 xmlDocPtr cur);
@@ -134,6 +140,8 @@ XMLPUBFUN int XMLCALL
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* LIBXML_HTML_ENABLED */
 
 #endif /* __HTML_TREE_H__ */
 

@@ -52,10 +52,13 @@ EXPORTS    = ${EXP_LIB}.${COMPONENT}.h.libxml \
              ${EXP_LIB}.${COMPONENT}.h.xmlerror \
              ${EXP_LIB}.${COMPONENT}.h.xmlexports \
              ${EXP_LIB}.${COMPONENT}.h.xmlmemory \
+             ${EXP_LIB}.${COMPONENT}.h.xmlmodule \
              ${EXP_LIB}.${COMPONENT}.h.xmlreader \
              ${EXP_LIB}.${COMPONENT}.h.xmlregexp \
+             ${EXP_LIB}.${COMPONENT}.h.xmlsave \
              ${EXP_LIB}.${COMPONENT}.h.xmlschemas \
              ${EXP_LIB}.${COMPONENT}.h.xmlschemastypes \
+             ${EXP_LIB}.${COMPONENT}.h.xmlstring \
              ${EXP_LIB}.${COMPONENT}.h.xmlunicode \
              ${EXP_LIB}.${COMPONENT}.h.xmlversion \
              ${EXP_LIB}.${COMPONENT}.h.xpath \
@@ -109,8 +112,10 @@ OBJS       = o.c14n \
              o.xmlmemory \
              o.xmlreader \
              o.xmlregexp \
+             o.xmlsave \
              o.xmlschemas \
              o.xmlschemastypes \
+             o.xmlstring \
              o.xmlunicode \
              o.xpath \
              o.xpointer \
