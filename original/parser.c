@@ -12062,7 +12062,9 @@ xmlInitParser(void) {
 	(xmlGenericError == NULL))
 	initGenericErrorDefaultFunc(NULL);
     xmlInitGlobals();
+#ifdef HAVE_PTHREAD_H
     xmlInitThreads();
+#endif
     xmlInitMemory();
     xmlInitCharEncodingHandlers();
     xmlDefaultSAXHandlerInit();

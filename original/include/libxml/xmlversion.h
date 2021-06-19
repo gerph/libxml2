@@ -1,10 +1,9 @@
 /*
- * Summary: compile-time version information
- * Description: compile-time version information for the XML library
+ * xmlversion.h : compile-time version informations for the XML parser.
  *
- * Copy: See Copyright for the status of this software.
+ * See Copyright for the status of this software.
  *
- * Author: Daniel Veillard
+ * daniel@veillard.com
  */
 
 #ifndef __XML_VERSION_H__
@@ -29,28 +28,21 @@ XMLPUBFUN void XMLCALL xmlCheckVersion(int version);
  *
  * the version string like "1.2.3"
  */
-#define LIBXML_DOTTED_VERSION "2.9.12"
+#define LIBXML_DOTTED_VERSION "2.6.2"
 
 /**
  * LIBXML_VERSION:
  *
- * the version number: 1.2.3 value is 10203
+ * the version number: 1.2.3 value is 1002003
  */
-#define LIBXML_VERSION 20912
+#define LIBXML_VERSION 20602
 
 /**
  * LIBXML_VERSION_STRING:
  *
- * the version number string, 1.2.3 value is "10203"
+ * the version number string, 1.2.3 value is "1002003"
  */
-#define LIBXML_VERSION_STRING "20912"
-
-/**
- * LIBXML_VERSION_EXTRA:
- *
- * extra version information, used to show a CVS compilation
- */
-#define LIBXML_VERSION_EXTRA "-GITv2.9.12-12-g22f15211"
+#define LIBXML_VERSION_STRING "20602"
 
 /**
  * LIBXML_TEST_VERSION:
@@ -58,7 +50,7 @@ XMLPUBFUN void XMLCALL xmlCheckVersion(int version);
  * Macro to check that the libxml version in use is compatible with
  * the version the software has been compiled against
  */
-#define LIBXML_TEST_VERSION xmlCheckVersion(20912);
+#define LIBXML_TEST_VERSION xmlCheckVersion(20602);
 
 #ifndef VMS
 #if 0
@@ -77,11 +69,6 @@ XMLPUBFUN void XMLCALL xmlCheckVersion(int version);
 #define WITHOUT_TRIO
 #endif
 #else /* VMS */
-/**
- * WITH_TRIO:
- *
- * defined if the trio support need to be configured in
- */
 #define WITH_TRIO 1
 #endif /* VMS */
 
@@ -90,17 +77,10 @@ XMLPUBFUN void XMLCALL xmlCheckVersion(int version);
  *
  * Whether the thread support is configured in
  */
-#if 1
+#if 0
+#if defined(_REENTRANT) || defined(__MT__) || (_POSIX_C_SOURCE - 0 >= 199506L)
 #define LIBXML_THREAD_ENABLED
 #endif
-
-/**
- * LIBXML_THREAD_ALLOC_ENABLED:
- *
- * Whether the allocation hooks are per-thread
- */
-#if 0
-#define LIBXML_THREAD_ALLOC_ENABLED
 #endif
 
 /**
@@ -140,15 +120,6 @@ XMLPUBFUN void XMLCALL xmlCheckVersion(int version);
 #endif
 
 /**
- * LIBXML_PATTERN_ENABLED:
- *
- * Whether the xmlPattern node selection interface is configured in
- */
-#if 1
-#define LIBXML_PATTERN_ENABLED
-#endif
-
-/**
  * LIBXML_WRITER_ENABLED:
  *
  * Whether the xmlWriter saving interface is configured in
@@ -171,7 +142,7 @@ XMLPUBFUN void XMLCALL xmlCheckVersion(int version);
  *
  * Whether the FTP support is configured in
  */
-#if 1
+#if 0
 #define LIBXML_FTP_ENABLED
 #endif
 
@@ -180,7 +151,7 @@ XMLPUBFUN void XMLCALL xmlCheckVersion(int version);
  *
  * Whether the HTTP support is configured in
  */
-#if 1
+#if 0
 #define LIBXML_HTTP_ENABLED
 #endif
 
@@ -270,17 +241,8 @@ XMLPUBFUN void XMLCALL xmlCheckVersion(int version);
  *
  * Whether iconv support is available
  */
-#if 1
-#define LIBXML_ICONV_ENABLED
-#endif
-
-/**
- * LIBXML_ICU_ENABLED:
- *
- * Whether icu support is available
- */
 #if 0
-#define LIBXML_ICU_ENABLED
+#define LIBXML_ICONV_ENABLED
 #endif
 
 /**
@@ -306,17 +268,8 @@ XMLPUBFUN void XMLCALL xmlCheckVersion(int version);
  *
  * Whether the memory debugging is configured in
  */
-#if 0
+#if 1
 #define DEBUG_MEMORY_LOCATION
-#endif
-
-/**
- * LIBXML_DEBUG_RUNTIME:
- *
- * Whether the runtime debugging is configured in
- */
-#if 0
-#define LIBXML_DEBUG_RUNTIME
 #endif
 
 /**
@@ -347,17 +300,6 @@ XMLPUBFUN void XMLCALL xmlCheckVersion(int version);
 #endif
 
 /**
- * LIBXML_EXPR_ENABLED:
- *
- * Whether the formal expressions interfaces are compiled in
- *
- * This code is unused and disabled unconditionally for now.
- */
-#if 0
-#define LIBXML_EXPR_ENABLED
-#endif
-
-/**
  * LIBXML_SCHEMAS_ENABLED:
  *
  * Whether the Schemas validation interfaces are compiled in
@@ -367,115 +309,20 @@ XMLPUBFUN void XMLCALL xmlCheckVersion(int version);
 #endif
 
 /**
- * LIBXML_SCHEMATRON_ENABLED:
+ * ATTRIBUTE_UNUSED:
  *
- * Whether the Schematron validation interfaces are compiled in
+ * Macro used to signal to GCC unused function parameters
  */
-#if 1
-#define LIBXML_SCHEMATRON_ENABLED
-#endif
-
-/**
- * LIBXML_MODULES_ENABLED:
- *
- * Whether the module interfaces are compiled in
- */
-#if 1
-#define LIBXML_MODULES_ENABLED
-/**
- * LIBXML_MODULE_EXTENSION:
- *
- * the string suffix used by dynamic modules (usually shared libraries)
- */
-#define LIBXML_MODULE_EXTENSION ".so" 
-#endif
-
-/**
- * LIBXML_ZLIB_ENABLED:
- *
- * Whether the Zlib support is compiled in
- */
-#if 1
-#define LIBXML_ZLIB_ENABLED
-#endif
-
-/**
- * LIBXML_LZMA_ENABLED:
- *
- * Whether the Lzma support is compiled in
- */
-#if 1
-#define LIBXML_LZMA_ENABLED
-#endif
-
 #ifdef __GNUC__
-
-/**
- * ATTRIBUTE_UNUSED:
- *
- * Macro used to signal to GCC unused function parameters
- */
-
+#ifdef HAVE_ANSIDECL_H
+#include <ansidecl.h>
+#endif
 #ifndef ATTRIBUTE_UNUSED
-# if ((__GNUC__ > 2) || ((__GNUC__ == 2) && (__GNUC_MINOR__ >= 7)))
-#  define ATTRIBUTE_UNUSED __attribute__((unused))
-# else
-#  define ATTRIBUTE_UNUSED
-# endif
-#endif
-
-/**
- * LIBXML_ATTR_ALLOC_SIZE:
- *
- * Macro used to indicate to GCC this is an allocator function
- */
-
-#ifndef LIBXML_ATTR_ALLOC_SIZE
-# if (!defined(__clang__) && ((__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 3))))
-#  define LIBXML_ATTR_ALLOC_SIZE(x) __attribute__((alloc_size(x)))
-# else
-#  define LIBXML_ATTR_ALLOC_SIZE(x)
-# endif
-#else
-# define LIBXML_ATTR_ALLOC_SIZE(x)
-#endif
-
-/**
- * LIBXML_ATTR_FORMAT:
- *
- * Macro used to indicate to GCC the parameter are printf like
- */
-
-#ifndef LIBXML_ATTR_FORMAT
-# if ((__GNUC__ > 3) || ((__GNUC__ == 3) && (__GNUC_MINOR__ >= 3)))
-#  define LIBXML_ATTR_FORMAT(fmt,args) __attribute__((__format__(__printf__,fmt,args)))
-# else
-#  define LIBXML_ATTR_FORMAT(fmt,args)
-# endif
-#else
-# define LIBXML_ATTR_FORMAT(fmt,args)
-#endif
-
-#else /* ! __GNUC__ */
-/**
- * ATTRIBUTE_UNUSED:
- *
- * Macro used to signal to GCC unused function parameters
- */
 #define ATTRIBUTE_UNUSED
-/**
- * LIBXML_ATTR_ALLOC_SIZE:
- *
- * Macro used to indicate to GCC this is an allocator function
- */
-#define LIBXML_ATTR_ALLOC_SIZE(x)
-/**
- * LIBXML_ATTR_FORMAT:
- *
- * Macro used to indicate to GCC the parameter are printf like
- */
-#define LIBXML_ATTR_FORMAT(fmt,args)
-#endif /* __GNUC__ */
+#endif
+#else
+#define ATTRIBUTE_UNUSED
+#endif
 
 #ifdef __cplusplus
 }

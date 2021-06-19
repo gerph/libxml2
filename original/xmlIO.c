@@ -36,6 +36,10 @@
 #include <zlib.h>
 #endif
 
+#ifdef __riscos
+#include "libxml/riscos.h"
+#endif
+
 /* Figure a portable way to know if a file is a directory. */
 #ifndef HAVE_STAT
 #  ifdef HAVE__STAT
@@ -559,7 +563,11 @@ static int
 xmlFdRead (void * context, char * buffer, int len) {
     int ret;
 
+#ifdef __riscos
+    ret = fread(&buffer[0], 1, len, (FILE *)context);
+#else
     ret = read((int) (long) context, &buffer[0], len);
+#endif
     if (ret < 0) xmlIOErr(0, "read()");
     return(ret);
 }
@@ -579,7 +587,11 @@ static int
 xmlFdWrite (void * context, const char * buffer, int len) {
     int ret;
 
+#ifdef __riscos
+    ret = fwrite(&buffer[0], 1, len, (FILE *)context);
+#else
     ret = write((int) (long) context, &buffer[0], len);
+#endif
     if (ret < 0) xmlIOErr(0, "write()");
     return(ret);
 }
@@ -596,7 +608,11 @@ xmlFdWrite (void * context, const char * buffer, int len) {
 static int
 xmlFdClose (void * context) {
     int ret;
+#ifdef __riscos
+    ret = fclose((FILE *) context);
+#else
     ret = close((int) (long) context);
+#endif
     if (ret < 0) xmlIOErr(0, "close()");
     return(ret);
 }
@@ -652,6 +668,10 @@ xmlFileOpen_real (const char *filename) {
 	return(NULL);
     if (!xmlCheckFilename(path))
         return(NULL);
+
+#ifdef __riscos
+    path=(char const *)riscosfilename(path);
+#endif
 
 #if defined(WIN32) || defined (__DJGPP__) && !defined (__CYGWIN__)
     fd = fopen(path, "rb");
@@ -719,6 +739,10 @@ xmlFileOpenW (const char *filename) {
 #endif
     } else 
 	path = filename;
+
+#ifdef __riscos
+    path=(char const *)riscosfilename(path);
+#endif
 
     if (path == NULL)
 	return(NULL);
@@ -845,10 +869,12 @@ xmlGzfileOpen_real (const char *filename) {
     const char *path = NULL;
     gzFile fd;
 
+#ifndef __riscos
     if (!strcmp(filename, "-")) {
         fd = gzdopen(dup(0), "rb");
 	return((void *) fd);
     }
+#endif
 
     if (!xmlStrncasecmp(BAD_CAST filename, BAD_CAST "file://localhost/", 17))
 #if defined (_WIN32) || defined (__DJGPP__) && !defined(__CYGWIN__)
@@ -915,10 +941,12 @@ xmlGzfileOpenW (const char *filename, int compression) {
     gzFile fd;
 
     snprintf(mode, sizeof(mode), "wb%d", compression);
+#ifndef __riscos
     if (!strcmp(filename, "-")) {
         fd = gzdopen(dup(1), mode);
 	return((void *) fd);
     }
+#endif
 
     if (!xmlStrncasecmp(BAD_CAST filename, BAD_CAST "file://localhost/", 17))
 #if defined (_WIN32) || defined (__DJGPP__) && !defined(__CYGWIN__)
@@ -2947,10 +2975,15 @@ xmlParserGetDirectory(const char *filename) {
 	else *cur = 0;
 	ret = xmlMemStrdup(dir);
     } else {
+#ifdef __riscos
+        /* RISC OS indicates the CSD by using @ as the directory name */
+        ret = xmlMemStrdup("@");
+#else
         if (getcwd(dir, 1024) != NULL) {
 	    dir[1023] = 0;
 	    ret = xmlMemStrdup(dir);
 	}
+#endif
     }
     return(ret);
 }

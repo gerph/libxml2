@@ -1,6 +1,6 @@
 /*************************************************************************
  *
- * $Id$
+ * $Id: trio.c,v 1.11 2003/04/03 15:28:27 veillard Exp $
  *
  * Copyright (C) 1998 Bjorn Reese and Daniel Stenberg.
  *
@@ -719,7 +719,7 @@ typedef struct _trio_userdef_t {
  *
  *************************************************************************/
 
-static TRIO_CONST char rcsid[] = "@(#)$Id$";
+static TRIO_CONST char rcsid[] = "@(#)$Id: trio.c,v 1.11 2003/04/03 15:28:27 veillard Exp $";
 
 /*
  * Need this to workaround a parser bug in HP C/iX compiler that fails
@@ -3472,7 +3472,11 @@ TRIO_ARGS2((self, output),
   fd = *((int *)self->location);
   ch = (char)output;
   self->processed++;
+#ifdef __riscos
+  if (fwrite(&ch, sizeof(char), 1, fd) != sizeof(char))
+#else
   if (write(fd, &ch, sizeof(char)) == -1)
+#endif
     {
       self->error = TRIO_ERROR_RETURN(TRIO_ERRNO, 0);
     }
@@ -5489,7 +5493,12 @@ TRIO_ARGS5((self, target, flags, width, base),
   while (((width == NO_WIDTH) || (self->processed - count < width)) &&
 	 (! ((self->current == EOF) || isspace(self->current))))
     {
+#ifdef __riscos
+      /* JRF: RISC OS doesn't have isascii */
+      if ((self->current & ~0x7f)==0)
+#else
       if (isascii(self->current))
+#endif
 	{
 	  digit = internalDigitArray[self->current];
 	  /* Abort if digit is not allowed in the specified base */
@@ -6433,13 +6442,21 @@ TRIO_ARGS2((self, intPointer),
 	   trio_class_t *self,
 	   int *intPointer)
 {
+#ifdef __riscos
+  FILE *fd = (FILE *)self->location;
+#else
   int fd = *((int *)self->location);
+#endif
   int size;
   unsigned char input;
 
   assert(VALID(self));
 
+#ifdef __riscos
+  size = fread(&input, sizeof(char), 1, fd);
+#else
   size = read(fd, &input, sizeof(char));
+#endif
   if (size == -1)
     {
       self->error = TRIO_ERROR_RETURN(TRIO_ERRNO, 0);

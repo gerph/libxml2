@@ -145,6 +145,10 @@ xmlXPathGetSign(double val) {
 
 /*
  * TODO: when compatibility allows remove all "fake node libxslt" strings
+#ifdef __riscos
+#include "libxml/riscos.h"
+#endif
+
  *       the test should just be name[0] = ' '
  */
 /* #define DEBUG */
@@ -10669,7 +10673,19 @@ xmlXPathRunEval(xmlXPathParserContextPtr ctxt) {
 	    "xmlXPathRunEval: last is less than zero\n");
 	return;
     }
+/* JRF: I need the code to not generate aborts when FP exceptions occur
+        in the evaluation code - the easiest way to do this is to disable
+        the exceptions over the evaluation, and to restore the old
+        behaviour afterwards. */
+# if defined(TRIO_PLATFORM_UNIX) || defined(__riscos)
+  {
+    void (*signal_handler)(int) = signal(SIGFPE, SIG_IGN);
+# endif
     xmlXPathCompOpEval(ctxt, &comp->steps[comp->last]);
+# if defined(TRIO_PLATFORM_UNIX) || defined(__riscos)
+    signal(SIGFPE, signal_handler);
+  }
+# endif
 }
 
 /************************************************************************

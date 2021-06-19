@@ -23,6 +23,10 @@
 #include <libxml/xmlmemory.h>
 #include <libxml/threads.h>
 
+#ifdef __riscos
+#include <libxml/riscos.h>
+#endif
+
 /* #define DEBUG_GLOBALS */
 
 /*

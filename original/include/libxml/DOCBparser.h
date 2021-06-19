@@ -13,7 +13,7 @@
 #include <libxml/parserInternals.h>
 
 #ifndef IN_LIBXML
-#warning "The DOCBparser module has been deprecated in libxml2-2.6.0"
+/* #warning "The DOCBparser module has been deprecated in libxml2-2.6.0" */
 #endif
 #ifdef __cplusplus
 extern "C" {

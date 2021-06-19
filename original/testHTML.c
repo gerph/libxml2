@@ -37,6 +37,10 @@
 #include <libxml/xmlerror.h>
 #include <libxml/globals.h>
 
+#ifdef __riscos
+#include "libxml/riscos.h"
+#endif
+
 #ifdef LIBXML_DEBUG_ENABLED
 static int debug = 0;
 #endif
@@ -626,8 +630,11 @@ parseSAXFile(char *filename) {
 #ifdef LIBXML_PUSH_ENABLED
     if (push) {
 	FILE *f;
-
+#ifdef __riscos
+	f = fopen(riscosfilename(filename), "r");
+#else
 	f = fopen(filename, "r");
+#endif
 	if (f != NULL) {
 	    int res, size = 3;
 	    char chars[4096];
@@ -653,7 +660,11 @@ parseSAXFile(char *filename) {
 	    fclose(f);
 	}
 	if (!noout) {
+#ifdef __riscos
+	    f = fopen(riscosfilename(filename), "r");
+#else
 	    f = fopen(filename, "r");
+#endif
 	    if (f != NULL) {
 		int res, size = 3;
 		char chars[4096];
@@ -711,8 +722,11 @@ parseAndPrintFile(char *filename) {
      */
     if (push) {
 	FILE *f;
-
+#ifdef __riscos
+	f = fopen(riscosfilename(filename), "r");
+#else
 	f = fopen(filename, "r");
+#endif
 	if (f != NULL) {
 	    int res, size = 3;
 	    char chars[4096];

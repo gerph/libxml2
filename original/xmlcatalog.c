@@ -6,8 +6,12 @@
  * daniel@veillard.com
  */
 
+/* Justin's port version */
+#define PORTVERSION "1.26"
+
 #include "libxml.h"
 
+#include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -29,6 +33,10 @@
 #include <libxml/parser.h>
 #include <libxml/globals.h>
 
+#ifdef __riscos
+#include "libxml/riscos.h"
+#endif
+
 #if defined(LIBXML_CATALOG_ENABLED) && defined(LIBXML_OUTPUT_ENABLED)
 static int shell = 0;
 static int sgml = 0;
@@ -42,7 +50,11 @@ static char *filename;
 
 
 #ifndef XML_SGML_DEFAULT_CATALOG
+#ifdef __riscos
+#define XML_SGML_DEFAULT_CATALOG "file:///%3CXMLCatalog$Dir%3E/cat.sgml"
+#else
 #define XML_SGML_DEFAULT_CATALOG "/etc/sgml/catalog"
+#endif
 #endif
 
 /************************************************************************
@@ -306,8 +318,13 @@ static void usershell(void) {
  * 									*
  ************************************************************************/
 static void usage(const char *name) {
+#ifdef __riscos
+    printf("xmlcatalog, RISC OS port " PORTVERSION
+           " (" __DATE__ ") by Justin Fletcher\n");
+#endif
     printf("Usage : %s [options] catalogfile entities...\n", name);
     printf("\tParse the catalog file and query it for the entities\n");
+    printf("\nSwitches:\n");
     printf("\t--sgml : handle SGML Super catalogs for --add and --del\n");
     printf("\t--shell : run a shell allowing interactive queries\n");
     printf("\t--create : create a new catalog\n");
@@ -462,9 +479,17 @@ int main(int argc, char **argv) {
 		    FILE *out;
 
 		    if (xmlCatalogIsEmpty(catal)) {
+#ifdef __riscos
+			remove(riscosfilename(argv[i + 1]));
+#else
 			remove(argv[i + 1]);
+#endif
 		    } else {
+#ifdef __riscos
+			out = fopen(riscosfilename(argv[i + 1]), "w");
+#else
 			out = fopen(argv[i + 1], "w");
+#endif
 			if (out == NULL) {
 			    fprintf(stderr, "could not open %s for saving\n",
 				    argv[i + 1]);
@@ -477,9 +502,17 @@ int main(int argc, char **argv) {
 		    }
 		    if (super != NULL) {
 			if (xmlCatalogIsEmpty(super)) {
+#ifdef __riscos
+			    remove(riscosfilename(XML_SGML_DEFAULT_CATALOG));
+#else
 			    remove(XML_SGML_DEFAULT_CATALOG);
+#endif
 			} else {
+#ifdef __riscos
+			    out = fopen(riscosfilename(XML_SGML_DEFAULT_CATALOG), "w");
+#else
 			    out = fopen(XML_SGML_DEFAULT_CATALOG, "w");
+#endif
 			    if (out == NULL) {
 				fprintf(stderr,
 					"could not open %s for saving\n",
@@ -559,7 +592,11 @@ int main(int argc, char **argv) {
 	if (noout) {
 	    FILE *out;
 
+#ifdef __riscos
+	    out = fopen(riscosfilename(filename), "w");
+#else
 	    out = fopen(filename, "w");
+#endif
 	    if (out == NULL) {
 		fprintf(stderr, "could not open %s for saving\n", filename);
 		exit_value = 2;

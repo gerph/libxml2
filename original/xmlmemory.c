@@ -58,6 +58,10 @@ void xmlMallocBreakpoint(void);
  *									*
  ************************************************************************/
 
+#ifdef __riscos
+#include "libxml/riscos.h"
+#endif
+
 
 #ifdef xmlMalloc
 #undef xmlMalloc
@@ -732,7 +736,12 @@ xmlMemoryDump(void)
 
     if (debugMaxMemSize == 0)
 	return;
+#ifdef __riscos
+    /* JRF: Write it somewhere away from view, but handy */
+    dump = fopen("<Wimp$ScrapDir>.libxml-mem", "w");
+#else
     dump = fopen(".memdump", "w");
+#endif
     if (dump == NULL)
 	xmlMemoryDumpFile = stderr;
     else xmlMemoryDumpFile = dump;
@@ -769,13 +778,21 @@ xmlInitMemory(void)
      if (xmlInitMemoryDone) return(-1);
 
 #ifdef HAVE_STDLIB_H
+#ifdef __riscos
+     breakpoint = getenv("LibXML$MemBreakpoint");
+#else
      breakpoint = getenv("XML_MEM_BREAKPOINT");
+#endif
      if (breakpoint != NULL) {
          sscanf(breakpoint, "%d", &xmlMemStopAtBlock);
      }
 #endif     
 #ifdef HAVE_STDLIB_H
+#ifdef __riscos
+     breakpoint = getenv("LibXML$MemTrace");
+#else
      breakpoint = getenv("XML_MEM_TRACE");
+#endif
      if (breakpoint != NULL) {
          sscanf(breakpoint, "%p", &xmlMemTraceBlockAt);
      }

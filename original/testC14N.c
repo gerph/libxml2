@@ -100,7 +100,7 @@ test_c14n(const char* xml_filename, int with_comments, int exclusive,
 	    with_comments, &result);
     if(ret >= 0) {
 	if(result != NULL) {
-	    write(1, result, ret);
+	    fwrite(result, 1, ret, stderr); /* JRF: was write(1, result, ret); */
 	    xmlFree(result);          
 	}
     } else {

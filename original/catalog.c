@@ -70,6 +70,10 @@
 
 static int xmlExpandCatalog(xmlCatalogPtr catal, const char *filename);
 
+#ifdef __riscos
+#include "libxml/riscos.h"
+#endif
+
 /************************************************************************
  *									*
  *			Types, all private				*
@@ -896,11 +900,17 @@ xmlLoadFileContent(const char *filename)
         return (NULL);
 #endif
 
+#ifdef __riscos
+    if (filename)
+        filename=riscosfilename(filename);
+#endif
+
 #ifdef HAVE_STAT
     if ((fd = open(filename, O_RDONLY)) < 0)
 #else
     if ((fd = fopen(filename, "rb")) == NULL)
 #endif
+        printf("Couldn't read %s\n",filename);
     {
         return (NULL);
     }
@@ -2450,6 +2460,10 @@ xmlLoadSGMLSuperCatalog(const char *filename)
     xmlCatalogPtr catal;
     int ret;
 
+    if (xmlDebugCatalogs)
+	xmlGenericError(xmlGenericErrorContext,
+		"Loading catalog %s\n", filename);
+
     content = xmlLoadFileContent(filename);
     if (content == NULL)
         return(NULL);
@@ -2501,6 +2515,9 @@ xmlLoadACatalog(const char *filename)
 	first++;
 
     if (*first != '<') {
+	if (xmlDebugCatalogs)
+	    xmlGenericError(xmlGenericErrorContext,
+			    "Processing catalogue as SGML\n");
 	catal = xmlCreateNewCatalog(XML_SGML_CATALOG_TYPE, xmlCatalogDefaultPrefer);
 	if (catal == NULL) {
 	    xmlFree(content);
@@ -2513,6 +2530,9 @@ xmlLoadACatalog(const char *filename)
 	    return(NULL);
 	}
     } else {
+	if (xmlDebugCatalogs)
+	    xmlGenericError(xmlGenericErrorContext,
+			    "Processing catalogue as XML\n");
 	catal = xmlCreateNewCatalog(XML_XML_CATALOG_TYPE, xmlCatalogDefaultPrefer);
 	if (catal == NULL) {
 	    xmlFree(content);
@@ -2889,7 +2909,11 @@ xmlInitializeCatalogData(void) {
     if (xmlCatalogInitialized != 0)
 	return;
 
+#ifdef __riscos
+    if (getenv("XMLCatalog$Debug"))
+#else
     if (getenv("XML_DEBUG_CATALOG")) 
+#endif
 	xmlDebugCatalogs = 1;
     xmlCatalogMutex = xmlNewRMutex();
 
@@ -2910,7 +2934,11 @@ xmlInitializeCatalog(void) {
     xmlInitializeCatalogData();
     xmlRMutexLock(xmlCatalogMutex);
 
+#ifdef __riscos
+    if (getenv("XMLCatalog$Debug"))
+#else
     if (getenv("XML_DEBUG_CATALOG")) 
+#endif
 	xmlDebugCatalogs = 1;
 
     if (xmlDefaultCatalog == NULL) {
@@ -2920,7 +2948,13 @@ xmlInitializeCatalog(void) {
 	xmlCatalogPtr catal;
 	xmlCatalogEntryPtr *nextent;
 
+#ifdef __riscos
+	catalogs = (const char *) getenv("XML$CatalogFiles");
+	if (catalogs)
+	  catalogs=unixfilename(catalogs);
+#else
 	catalogs = (const char *) getenv("XML_CATALOG_FILES");
+#endif
 	if (catalogs == NULL)
 	    catalogs = XML_XML_DEFAULT_CATALOG;
 

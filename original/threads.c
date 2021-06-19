@@ -117,7 +117,9 @@ int32 run_once_init = 0;
 
 static xmlRMutexPtr	xmlLibraryLock = NULL;
 #ifdef LIBXML_THREAD_ENABLED
+#ifdef HAVE_PTHREAD_H
 static void xmlOnceInit(void);
+#endif
 #endif
 
 /**
@@ -620,6 +622,7 @@ xmlUnlockLibrary(void)
     xmlRMutexUnlock(xmlLibraryLock);
 }
 
+#ifdef HAVE_PTHREAD_H
 /**
  * xmlInitThreads:
  *
@@ -636,6 +639,7 @@ xmlInitThreads(void)
     InitializeCriticalSection(&cleanup_helpers_cs);
 #endif
 }
+#endif
 
 /**
  * xmlCleanupThreads:
