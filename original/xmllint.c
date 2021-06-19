@@ -6,8 +6,8 @@
  * daniel@veillard.com
  */
 
-/* Justin's port version */
-#define PORTVERSION "1.37"
+/* Gerph's port version */
+#define PORTVERSION "1.38"
 
 #include "libxml.h"
 #include <stdlib.h>
@@ -3331,7 +3331,7 @@ static void showVersion(const char *name) {
     fprintf(stderr, "\n");
 #ifdef __riscos
     fprintf(stderr, "         RISC OS port " PORTVERSION
-                    " (" __DATE__ ") by Justin Fletcher\n");
+                    " (" __DATE__ ") by Gerph\n");
 #endif
 }
 

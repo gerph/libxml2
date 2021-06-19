@@ -6,8 +6,8 @@
  * daniel@veillard.com
  */
 
-/* Justin's port version */
-#define PORTVERSION "1.37"
+/* Gerph's port version */
+#define PORTVERSION "1.38"
 
 #include "libxml.h"
 
@@ -324,7 +324,7 @@ static void usage(const char *name) {
     /* split into 2 printf's to avoid overly long string (gcc warning) */
 #ifdef __riscos
     printf("xmlcatalog, RISC OS port " PORTVERSION
-           " (" __DATE__ ") by Justin Fletcher\n");
+           " (" __DATE__ ") by Gerph\n");
 #endif
     printf("\
 Usage : %s [options] catalogfile entities...\n\
