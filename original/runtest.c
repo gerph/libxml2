@@ -81,8 +81,10 @@
  */
 #ifdef	O_BINARY
 #define RD_FLAGS	O_RDONLY | O_BINARY
+#define WR_FLAGS	O_WRONLY | O_CREAT | O_TRUNC | O_BINARY
 #else
-#define	RD_FLAGS	O_RDONLY
+#define RD_FLAGS	O_RDONLY
+#define WR_FLAGS	O_WRONLY | O_CREAT | O_TRUNC
 #endif
 
 typedef int (*functest) (const char *filename, const char *result,
@@ -100,6 +102,7 @@ struct testDesc {
     int     options;  /* parser options for the test */
 };
 
+static int update_results = 0;
 static int checkTestFile(const char *filename);
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
@@ -604,11 +607,33 @@ static int checkTestFile(const char *filename) {
     return(1);
 }
 
-static int compareFiles(const char *r1, const char *r2) {
+static int compareFiles(const char *r1 /* temp */, const char *r2 /* result */) {
     int res1, res2;
     int fd1, fd2;
     char bytes1[4096];
     char bytes2[4096];
+
+    if (update_results) {
+        fd1 = open(r1, RD_FLAGS);
+        if (fd1 < 0)
+            return(-1);
+        fd2 = open(r2, WR_FLAGS, 0644);
+        if (fd2 < 0) {
+            close(fd1);
+            return(-1);
+        }
+        do {
+            res1 = read(fd1, bytes1, 4096);
+            if (res1 <= 0)
+                break;
+            res2 = write(fd2, bytes1, res1);
+            if (res2 <= 0 || res2 != res1)
+                break;
+        } while (1);
+        close(fd2);
+        close(fd1);
+        return(res1 != 0);
+    }
 
     fd1 = open(r1, RD_FLAGS);
     if (fd1 < 0)
@@ -646,13 +671,31 @@ static int compareFileMem(const char *filename, const char *mem, int size) {
     int idx = 0;
     struct stat info;
 
-    if (stat(filename, &info) < 0)
+    if (update_results) {
+        fd = open(filename, WR_FLAGS, 0644);
+        if (fd < 0) {
+	    fprintf(stderr, "failed to open %s for writing", filename);
+            return(-1);
+	}
+        res = write(fd, mem, size);
+        close(fd);
+        return(res != size);
+    }
+
+    if (stat(filename, &info) < 0) {
+        fprintf(stderr, "failed to stat %s\n", filename);
 	return(-1);
-    if (info.st_size != size)
+    }
+    if (info.st_size != size) {
+        fprintf(stderr, "file %s is %ld bytes, result is %d bytes\n",
+	        filename, info.st_size, size);
         return(-1);
+    }
     fd = open(filename, RD_FLAGS);
-    if (fd < 0)
+    if (fd < 0) {
+	fprintf(stderr, "failed to open %s for reading", filename);
         return(-1);
+    }
     while (idx < size) {
         res = read(fd, bytes, 4096);
 	if (res <= 0)
@@ -671,6 +714,9 @@ static int compareFileMem(const char *filename, const char *mem, int size) {
 	idx += res;
     }
     close(fd);
+    if (idx != size) {
+	fprintf(stderr,"Compare error index %d, size %d\n", idx, size);
+    }
     return(idx != size);
 }
 
@@ -1679,7 +1725,8 @@ saxParseTest(const char *filename, const char *result,
     }
     if (ret != 0) {
         fprintf(stderr, "Failed to parse %s\n", filename);
-	return(1);
+	ret = 1;
+	goto done;
     }
 #ifdef LIBXML_HTML_ENABLED
     if (options & XML_PARSE_HTML) {
@@ -1701,6 +1748,8 @@ saxParseTest(const char *filename, const char *result,
         fprintf(stderr, "Got a difference for %s\n", filename);
         ret = 1;
     }
+
+done:
     if (temp != NULL) {
         unlink(temp);
         free(temp);
@@ -1824,7 +1873,7 @@ pushParseTest(const char *filename, const char *result,
     ctxt = xmlCreatePushParserCtxt(NULL, NULL, base + cur, 4, filename);
     xmlCtxtUseOptions(ctxt, options);
     cur += 4;
-    while (cur < size) {
+    do {
         if (cur + 1024 >= size) {
 #ifdef LIBXML_HTML_ENABLED
 	    if (options & XML_PARSE_HTML)
@@ -1842,7 +1891,7 @@ pushParseTest(const char *filename, const char *result,
 	    xmlParseChunk(ctxt, base + cur, 1024, 0);
 	    cur += 1024;
 	}
-    }
+    } while (cur < size);
     doc = ctxt->myDoc;
 #ifdef LIBXML_HTML_ENABLED
     if (options & XML_PARSE_HTML)
@@ -1868,7 +1917,7 @@ pushParseTest(const char *filename, const char *result,
     if ((base == NULL) || (res != 0)) {
 	if (base != NULL)
 	    xmlFree((char *)base);
-        fprintf(stderr, "Result for %s failed\n", filename);
+        fprintf(stderr, "Result for %s failed in %s\n", filename, result);
 	return(-1);
     }
     xmlFree((char *)base);
@@ -1923,7 +1972,7 @@ memParseTest(const char *filename, const char *result,
     if ((base == NULL) || (res != 0)) {
 	if (base != NULL)
 	    xmlFree((char *)base);
-        fprintf(stderr, "Result for %s failed\n", filename);
+        fprintf(stderr, "Result for %s failed in %s\n", filename, result);
 	return(-1);
     }
     xmlFree((char *)base);
@@ -2034,15 +2083,15 @@ errParseTest(const char *filename, const char *result, const char *err,
 	    xmlDocDumpMemory(doc, (xmlChar **) &base, &size);
 	}
 	res = compareFileMem(result, base, size);
+	if (res != 0) {
+	    fprintf(stderr, "Result for %s failed in %s\n", filename, result);
+	    return(-1);
+	}
     }
     if (doc != NULL) {
 	if (base != NULL)
 	    xmlFree((char *)base);
 	xmlFreeDoc(doc);
-    }
-    if (res != 0) {
-        fprintf(stderr, "Result for %s failed\n", filename);
-	return(-1);
     }
     if (err != NULL) {
 	res = compareFileMem(err, testErrors, testErrorsSize);
@@ -2093,7 +2142,7 @@ static void processNode(FILE *out, xmlTextReaderPtr reader) {
 }
 static int
 streamProcessTest(const char *filename, const char *result, const char *err,
-                  xmlTextReaderPtr reader, const char *rng) {
+                  xmlTextReaderPtr reader, const char *rng, int options) {
     int ret;
     char *temp = NULL;
     FILE *t = NULL;
@@ -2156,7 +2205,7 @@ streamProcessTest(const char *filename, const char *result, const char *err,
             free(temp);
         }
 	if (ret) {
-	    fprintf(stderr, "Result for %s failed\n", filename);
+	    fprintf(stderr, "Result for %s failed in %s\n", filename, result);
 	    return(-1);
 	}
     }
@@ -2189,7 +2238,7 @@ streamParseTest(const char *filename, const char *result, const char *err,
     int ret;
 
     reader = xmlReaderForFile(filename, NULL, options);
-    ret = streamProcessTest(filename, result, err, reader, NULL);
+    ret = streamProcessTest(filename, result, err, reader, NULL, options);
     xmlFreeTextReader(reader);
     return(ret);
 }
@@ -2217,7 +2266,7 @@ walkerParseTest(const char *filename, const char *result, const char *err,
 	return(-1);
     }
     reader = xmlReaderWalker(doc);
-    ret = streamProcessTest(filename, result, err, reader, NULL);
+    ret = streamProcessTest(filename, result, err, reader, NULL, options);
     xmlFreeTextReader(reader);
     xmlFreeDoc(doc);
     return(ret);
@@ -2249,7 +2298,7 @@ streamMemParseTest(const char *filename, const char *result, const char *err,
 	return(-1);
     }
     reader = xmlReaderForMemory(base, size, filename, NULL, options);
-    ret = streamProcessTest(filename, result, err, reader, NULL);
+    ret = streamProcessTest(filename, result, err, reader, NULL, options);
     free((char *)base);
     xmlFreeTextReader(reader);
     return(ret);
@@ -2359,7 +2408,7 @@ xpathCommonTest(const char *filename, const char *result,
     if (result != NULL) {
 	ret = compareFiles(temp, result);
 	if (ret) {
-	    fprintf(stderr, "Result for %s failed\n", filename);
+	    fprintf(stderr, "Result for %s failed in %s\n", filename, result);
 	}
     }
 
@@ -2530,7 +2579,7 @@ xmlidDocTest(const char *filename,
     if (result != NULL) {
 	ret = compareFiles(temp, result);
 	if (ret) {
-	    fprintf(stderr, "Result for %s failed\n", filename);
+	    fprintf(stderr, "Result for %s failed in %s\n", filename, result);
 	    res = 1;
 	}
     }
@@ -2658,7 +2707,7 @@ uriCommonTest(const char *filename,
     if (result != NULL) {
 	ret = compareFiles(temp, result);
 	if (ret) {
-	    fprintf(stderr, "Result for %s failed\n", filename);
+	    fprintf(stderr, "Result for %s failed in %s\n", filename, result);
 	    res = 1;
 	}
     }
@@ -3308,9 +3357,11 @@ rngStreamTest(const char *filename,
 	    fprintf(stderr, "Failed to build reder for %s\n", instance);
 	}
 	if (disable_err == 1)
-	    ret = streamProcessTest(instance, result, NULL, reader, filename);
+	    ret = streamProcessTest(instance, result, NULL, reader, filename,
+	                            options);
 	else
-	    ret = streamProcessTest(instance, result, err, reader, filename);
+	    ret = streamProcessTest(instance, result, err, reader, filename,
+	                            options);
 	xmlFreeTextReader(reader);
 	if (ret != 0) {
 	    fprintf(stderr, "instance %s failed\n", instance);
@@ -3425,11 +3476,11 @@ patternTest(const char *filename,
     result[499] = 0;
     memcpy(xml + len, ".xml", 5);
 
-    if (!checkTestFile(xml)) {
+    if (!checkTestFile(xml) && !update_results) {
 	fprintf(stderr, "Missing xml file %s\n", xml);
 	return(-1);
     }
-    if (!checkTestFile(result)) {
+    if (!checkTestFile(result) && !update_results) {
 	fprintf(stderr, "Missing result file %s\n", result);
 	return(-1);
     }
@@ -3528,7 +3579,7 @@ patternTest(const char *filename,
 
     ret = compareFiles(temp, result);
     if (ret) {
-	fprintf(stderr, "Result for %s failed\n", filename);
+	fprintf(stderr, "Result for %s failed in %s\n", filename, result);
 	ret = 1;
     }
     if (temp != NULL) {
@@ -3800,7 +3851,7 @@ c14nCommonTest(const char *filename, int with_comments, int mode,
     prefix[len] = 0;
 
     snprintf(buf, 499, "result/c14n/%s/%s", subdir,prefix);
-    if (!checkTestFile(buf)) {
+    if (!checkTestFile(buf) && !update_results) {
         fprintf(stderr, "Missing result file %s", buf);
 	return(-1);
     }
@@ -4203,6 +4254,14 @@ testDesc testDescriptions[] = {
     { "Validity checking regression tests" ,
       errParseTest, "./test/VC/*", "result/VC/", NULL, "",
       XML_PARSE_DTDVALID },
+#ifdef LIBXML_READER_ENABLED
+    { "Streaming validity checking regression tests" ,
+      streamParseTest, "./test/valid/*.xml", "result/valid/", NULL, ".err.rdr",
+      XML_PARSE_DTDVALID },
+    { "Streaming validity error checking regression tests" ,
+      streamParseTest, "./test/VC/*", "result/VC/", NULL, ".rdr",
+      XML_PARSE_DTDVALID },
+#endif
     { "General documents valid regression tests" ,
       errParseTest, "./test/valid/*", "result/valid/", "", ".err",
       XML_PARSE_DTDVALID },
@@ -4341,9 +4400,9 @@ launchTests(testDescPtr tst) {
 	    } else {
 	        error = NULL;
 	    }
-	    if ((result) &&(!checkTestFile(result))) {
+	    if ((result) &&(!checkTestFile(result)) && !update_results) {
 	        fprintf(stderr, "Missing result file %s\n", result);
-	    } else if ((error) &&(!checkTestFile(error))) {
+	    } else if ((error) &&(!checkTestFile(error)) && !update_results) {
 	        fprintf(stderr, "Missing error file %s\n", error);
 	    } else {
 		mem = xmlMemUsed();
@@ -4427,6 +4486,8 @@ main(int argc ATTRIBUTE_UNUSED, char **argv ATTRIBUTE_UNUSED) {
     for (a = 1; a < argc;a++) {
         if (!strcmp(argv[a], "-v"))
 	    verbose = 1;
+        else if (!strcmp(argv[a], "-u"))
+	    update_results = 1;
         else if (!strcmp(argv[a], "-quiet"))
 	    tests_quiet = 1;
 	else {
