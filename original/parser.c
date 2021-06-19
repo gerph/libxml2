@@ -426,7 +426,7 @@ xmlWarningMsg(xmlParserCtxtPtr ctxt, xmlParserErrors error,
  * @msg:  the error message
  * @str1:  extra data
  *
- * Handle a warning.
+ * Handle a validity error.
  */
 static void
 xmlValidityError(xmlParserCtxtPtr ctxt, xmlParserErrors error,
@@ -7842,39 +7842,6 @@ failed:
     }
 
     /*
-     * The attributes checkings
-     */
-    for (i = 0; i < nbatts;i += 5) {
-        nsname = xmlGetNamespace(ctxt, atts[i + 1]);
-	if ((atts[i + 1] != NULL) && (nsname == NULL)) {
-	    xmlNsErr(ctxt, XML_NS_ERR_UNDEFINED_NAMESPACE,
-		 "Namespace prefix %s for %s on %s is not defined\n",
-		     atts[i + 1], atts[i], localname);
-	}
-	atts[i + 2] = nsname;
-	/*
-	 * [ WFC: Unique Att Spec ]
-	 * No attribute name may appear more than once in the same
-	 * start-tag or empty-element tag. 
-	 * As extended by the Namespace in XML REC.
-	 */
-        for (j = 0; j < i;j += 5) {
-	    if (atts[i] == atts[j]) {
-	        if (atts[i+1] == atts[j+1]) {
-		    xmlErrAttributeDup(ctxt, atts[i+1], atts[i]);
-		    break;
-		}
-		if ((nsname != NULL) && (atts[j + 2] == nsname)) {
-		    xmlNsErr(ctxt, XML_NS_ERR_ATTRIBUTE_REDEFINED,
-			     "Namespaced Attribute %s in '%s' redefined\n",
-			     atts[i], nsname, NULL);
-		    break;
-		}
-	    }
-	}
-    }
-
-    /*
      * The attributes defaulting
      */
     if (ctxt->attsDefault != NULL) {
@@ -7945,6 +7912,39 @@ failed:
 		    atts[nbatts++] = defaults->values[4 * i + 2];
 		    atts[nbatts++] = defaults->values[4 * i + 3];
 		    nbdef++;
+		}
+	    }
+	}
+    }
+
+    /*
+     * The attributes checkings
+     */
+    for (i = 0; i < nbatts;i += 5) {
+        nsname = xmlGetNamespace(ctxt, atts[i + 1]);
+	if ((atts[i + 1] != NULL) && (nsname == NULL)) {
+	    xmlNsErr(ctxt, XML_NS_ERR_UNDEFINED_NAMESPACE,
+		 "Namespace prefix %s for %s on %s is not defined\n",
+		     atts[i + 1], atts[i], localname);
+	}
+	atts[i + 2] = nsname;
+	/*
+	 * [ WFC: Unique Att Spec ]
+	 * No attribute name may appear more than once in the same
+	 * start-tag or empty-element tag. 
+	 * As extended by the Namespace in XML REC.
+	 */
+        for (j = 0; j < i;j += 5) {
+	    if (atts[i] == atts[j]) {
+	        if (atts[i+1] == atts[j+1]) {
+		    xmlErrAttributeDup(ctxt, atts[i+1], atts[i]);
+		    break;
+		}
+		if ((nsname != NULL) && (atts[j + 2] == nsname)) {
+		    xmlNsErr(ctxt, XML_NS_ERR_ATTRIBUTE_REDEFINED,
+			     "Namespaced Attribute %s in '%s' redefined\n",
+			     atts[i], nsname, NULL);
+		    break;
 		}
 	    }
 	}
@@ -10386,7 +10386,7 @@ xmlIOParseDTD(xmlSAXHandlerPtr sax, xmlParserInputBufferPtr input,
      * generate a parser input from the I/O handler
      */
 
-    pinput = xmlNewIOInputStream(ctxt, input, enc);
+    pinput = xmlNewIOInputStream(ctxt, input, XML_CHAR_ENCODING_NONE);
     if (pinput == NULL) {
         if (sax != NULL) ctxt->sax = NULL;
 	xmlFreeParserCtxt(ctxt);
@@ -10397,6 +10397,9 @@ xmlIOParseDTD(xmlSAXHandlerPtr sax, xmlParserInputBufferPtr input,
      * plug some encoding conversion routines here.
      */
     xmlPushInput(ctxt, pinput);
+    if (enc != XML_CHAR_ENCODING_NONE) {
+        xmlSwitchEncoding(ctxt, enc);
+    }
 
     pinput->filename = NULL;
     pinput->line = 1;
@@ -12083,11 +12086,11 @@ xmlInitParser(void) {
 /**
  * xmlCleanupParser:
  *
- * Cleanup function for the XML parser. It tries to reclaim all
- * parsing related global memory allocated for the parser processing.
+ * Cleanup function for the XML library. It tries to reclaim all
+ * parsing related global memory allocated for the library processing.
  * It doesn't deallocate any document related memory. Calling this
- * function should not prevent reusing the parser.
- * One should call xmlCleanupParser() only when the process has
+ * function should not prevent reusing the library but one should
+ * call xmlCleanupParser() only when the process has
  * finished using the library or XML document built with it.
  */
 
@@ -12104,9 +12107,9 @@ xmlCleanupParser(void) {
 #ifdef LIBXML_OUTPUT_ENABLED
     xmlCleanupOutputCallbacks();
 #endif
-    xmlCleanupThreads();
     xmlCleanupGlobals();
     xmlResetLastError();
+    xmlCleanupThreads(); /* must be last if called not from the main thread */
     xmlParserInitialized = 0;
 }
 

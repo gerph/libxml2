@@ -271,14 +271,23 @@ xmlXPathPErrMemory(xmlXPathParserContextPtr ctxt, const char *extra)
 void
 xmlXPathErr(xmlXPathParserContextPtr ctxt, int error)
 {
-    if (ctxt != NULL)
-        ctxt->error = error;
-    if ((ctxt == NULL) || (ctxt->context == NULL)) {
+    if (ctxt == NULL) {
 	__xmlRaiseError(NULL, NULL, NULL,
 			NULL, NULL, XML_FROM_XPATH,
 			error + XML_XPATH_EXPRESSION_OK - XPATH_EXPRESSION_OK,
 			XML_ERR_ERROR, NULL, 0,
 			NULL, NULL, NULL, 0, 0,
+			xmlXPathErrorMessages[error]);
+	return;
+    }
+    ctxt->error = error;
+    if (ctxt->context == NULL) {
+	__xmlRaiseError(NULL, NULL, NULL,
+			NULL, NULL, XML_FROM_XPATH,
+			error + XML_XPATH_EXPRESSION_OK - XPATH_EXPRESSION_OK,
+			XML_ERR_ERROR, NULL, 0,
+			(const char *) ctxt->base, NULL, NULL,
+			ctxt->cur - ctxt->base, 0,
 			xmlXPathErrorMessages[error]);
 	return;
     }
@@ -4359,14 +4368,13 @@ xmlXPathEqualNodeSetString(xmlXPathObjectPtr arg, const xmlChar * str, int neq)
         ((arg->type != XPATH_NODESET) && (arg->type != XPATH_XSLT_TREE)))
         return (0);
     ns = arg->nodesetval;
-    hash = xmlXPathStringHash(str);
-    if (ns == NULL)
+    /*
+     * A NULL nodeset compared with a string is always false
+     * (since there is no node equal, and no node not equal)
+     */
+    if ((ns == NULL) || (ns->nodeNr <= 0) )
         return (0);
-    if (ns->nodeNr <= 0) {
-	if (hash == 0)
-	    return(neq ^ 1);
-        return(neq);
-    }
+    hash = xmlXPathStringHash(str);
     for (i = 0; i < ns->nodeNr; i++) {
         if (xmlXPathNodeValHash(ns->nodeTab[i]) == hash) {
             str2 = xmlNodeGetContent(ns->nodeTab[i]);

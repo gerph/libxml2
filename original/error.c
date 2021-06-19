@@ -447,6 +447,8 @@ __xmlRaiseError(xmlStructuredErrorFunc schannel,
     xmlErrorPtr to = &xmlLastError;
     xmlChar *base = NULL;
 
+    if ((xmlGetWarningsDefaultValue == 0) && (level == XML_ERR_WARNING))
+        return;
     if ((domain == XML_FROM_PARSER) || (domain == XML_FROM_HTML) ||
         (domain == XML_FROM_DTD) || (domain == XML_FROM_NAMESPACE) ||
 	(domain == XML_FROM_IO)) {
@@ -455,6 +457,8 @@ __xmlRaiseError(xmlStructuredErrorFunc schannel,
 	    (ctxt->sax->initialized == XML_SAX2_MAGIC))
 	    schannel = ctxt->sax->serror;
     }
+    if (schannel == NULL)
+	schannel = xmlStructuredError;
     if ((domain == XML_FROM_VALID) &&
         ((channel == xmlParserValidityError) ||
 	 (channel == xmlParserValidityWarning))) {

@@ -1,9 +1,10 @@
 /*
- * xmlexports.h : macros for marking symbols as exportable/importable.
+ * Summary: macros for marking symbols as exportable/importable.
+ * Description: macros for marking symbols as exportable/importable.
  *
- * See Copyright for the status of this software.
+ * Copy: See Copyright for the status of this software.
  *
- * igor@zlatkovic.com
+ * Author: Igor Zlatovic <igor@zlatkovic.com>
  */
 
 #ifndef __XML_EXPORTS_H__
@@ -39,6 +40,8 @@
  * Macros which declare the called convention for exported functions
  */
 #define XMLCALL
+
+/** DOC_DISABLE */
 
 /* Windows platform with MS compiler */
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -85,7 +88,22 @@
 #endif
 
 /* Windows platform with GNU compiler (Mingw) */
-#if defined(_WIN32) && defined(__MINGW__)
+#if defined(_WIN32) && defined(__MINGW32__)
+  #undef XMLPUBFUN
+  #undef XMLPUBVAR
+  #undef XMLCALL
+  #if defined(IN_LIBXML) && !defined(LIBXML_STATIC)
+    #define XMLPUBFUN __declspec(dllexport)
+    #define XMLPUBVAR __declspec(dllexport) extern
+  #else
+    #define XMLPUBFUN
+    #if !defined(LIBXML_STATIC)
+      #define XMLPUBVAR __declspec(dllimport) extern
+    #else
+      #define XMLPUBVAR extern
+    #endif
+  #endif
+  #define XMLCALL __cdecl
   #if !defined _REENTRANT
     #define _REENTRANT
   #endif
