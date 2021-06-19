@@ -37,6 +37,7 @@ EXPORTS    = ${EXP_LIB}.${COMPONENT}.h.libxml \
              ${EXP_LIB}.${COMPONENT}.h.nanohttp \
              ${EXP_LIB}.${COMPONENT}.h.parser \
              ${EXP_LIB}.${COMPONENT}.h.parserInternals \
+             ${EXP_LIB}.${COMPONENT}.h.pattern \
              ${EXP_LIB}.${COMPONENT}.h.relaxng \
              ${EXP_LIB}.${COMPONENT}.h.riscos \
              ${EXP_LIB}.${COMPONENT}.h.schemasInternals \
@@ -93,6 +94,7 @@ OBJS       = o.c14n \
              o.nanohttp \
              o.parser \
              o.parserInternals \
+             o.pattern \
              o.relaxng \
              o.SAX \
              o.SAX2 \
@@ -176,6 +178,8 @@ ${EXP_LIB}.${COMPONENT}.h.nanohttp: include.libxml.h.nanohttp
 ${EXP_LIB}.${COMPONENT}.h.parser: include.libxml.h.parser
         ${CP} $? $@ ${CPFLAGS}
 ${EXP_LIB}.${COMPONENT}.h.parserInternals: include.libxml.h.parserInternals
+        ${CP} $? $@ ${CPFLAGS}
+${EXP_LIB}.${COMPONENT}.h.pattern: include.libxml.h.pattern
         ${CP} $? $@ ${CPFLAGS}
 ${EXP_LIB}.${COMPONENT}.h.relaxng: include.libxml.h.relaxng
         ${CP} $? $@ ${CPFLAGS}

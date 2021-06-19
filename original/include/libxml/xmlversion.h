@@ -28,21 +28,21 @@ XMLPUBFUN void XMLCALL xmlCheckVersion(int version);
  *
  * the version string like "1.2.3"
  */
-#define LIBXML_DOTTED_VERSION "2.6.2"
+#define LIBXML_DOTTED_VERSION "2.6.3"
 
 /**
  * LIBXML_VERSION:
  *
  * the version number: 1.2.3 value is 1002003
  */
-#define LIBXML_VERSION 20602
+#define LIBXML_VERSION 20603
 
 /**
  * LIBXML_VERSION_STRING:
  *
  * the version number string, 1.2.3 value is "1002003"
  */
-#define LIBXML_VERSION_STRING "20602"
+#define LIBXML_VERSION_STRING "20603"
 
 /**
  * LIBXML_TEST_VERSION:
@@ -50,7 +50,7 @@ XMLPUBFUN void XMLCALL xmlCheckVersion(int version);
  * Macro to check that the libxml version in use is compatible with
  * the version the software has been compiled against
  */
-#define LIBXML_TEST_VERSION xmlCheckVersion(20602);
+#define LIBXML_TEST_VERSION xmlCheckVersion(20603);
 
 #ifndef VMS
 #if 0
@@ -69,6 +69,11 @@ XMLPUBFUN void XMLCALL xmlCheckVersion(int version);
 #define WITHOUT_TRIO
 #endif
 #else /* VMS */
+/**
+ * WITH_TRIO:
+ *
+ * defined if the trio support need to be configured in
+ */
 #define WITH_TRIO 1
 #endif /* VMS */
 
@@ -117,6 +122,15 @@ XMLPUBFUN void XMLCALL xmlCheckVersion(int version);
  */
 #if 1
 #define LIBXML_READER_ENABLED
+#endif
+
+/**
+ * LIBXML_PATTERN_ENABLED:
+ *
+ * Whether the xmlPattern node selection interface is configured in
+ */
+#if 1
+#define LIBXML_PATTERN_ENABLED
 #endif
 
 /**

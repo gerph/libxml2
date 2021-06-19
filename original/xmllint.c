@@ -7,7 +7,7 @@
  */
 
 /* Justin's port version */
-#define PORTVERSION "1.30"
+#define PORTVERSION "1.31"
 
 #include "libxml.h"
 #include <stdlib.h>
