@@ -10,33 +10,38 @@
 /* Define to 1 if you have the <arpa/nameser.h> header file. */
 #define HAVE_ARPA_NAMESER_H 1
 
-/* #undef HAVE_LIBM */
+/* Whether struct sockaddr::__ss_family exists */
+/* #undef HAVE_BROKEN_SS_FAMILY */
 
 /* Define to 1 if you have the `class' function. */
 /* #undef HAVE_CLASS */
-/* #define HAVE_ISINF 1 */
-/* #undef HAVE_ISNAN */
-/* #undef HAVE_LIBHISTORY */
-/* #undef HAVE_LIBREADLINE */
-#define SOCKLEN_T int
 
-/* Define if you have the _stat function.  */
-/* #undef HAVE__STAT */
+/* Define to 1 if you have the <ctype.h> header file. */
+#define HAVE_CTYPE_H 1
 
-/* Define if you have the class function.  */
-/* #undef HAVE_CLASS */
+/* Define to 1 if you have the <dirent.h> header file. */
+/* #define HAVE_DIRENT_H 1 */
 
-/* Define if you have the finite function.  */
-/* #define HAVE_FINITE 1 */
+/* Define to 1 if you have the <dlfcn.h> header file. */
+/* #define HAVE_DLFCN_H 1 */
 
-/* Define if you have the fp_class function.  */
-/* #undef HAVE_FP_CLASS */
+/* Have dlopen based dso */
+/* #define HAVE_DLOPEN */
+
+/* Define to 1 if you have the <dl.h> header file. */
+/* #undef HAVE_DL_H */
+
+/* Define to 1 if you have the <errno.h> header file. */
+#define HAVE_ERRNO_H 1
+
+/* Define to 1 if you have the <fcntl.h> header file. */
+/* #define HAVE_FCNTL_H 1 */
 
 /* Define to 1 if you have the `finite' function. */
-#define HAVE_FINITE 1
+/* #define HAVE_FINITE 1 */
 
-/* Define if you have the fpclass function.  */
-/* #undef HAVE_FPCLASS */
+/* Define to 1 if you have the <float.h> header file. */
+#define HAVE_FLOAT_H 1
 
 /* Define to 1 if you have the `fpclass' function. */
 /* #undef HAVE_FPCLASS */
@@ -49,6 +54,12 @@
 
 /* Define to 1 if you have the <fp_class.h> header file. */
 /* #undef HAVE_FP_CLASS_H */
+
+/* Define to 1 if you have the `ftime' function. */
+/* #define HAVE_FTIME 1 */
+
+/* Define if getaddrinfo is there */
+/* #define HAVE_GETADDRINFO */
 
 /* Define if you have the gettimeofday function */
 /* #define HAVE_GETTIMEOFDAY 1 */
@@ -65,28 +76,29 @@
 /* Define to 1 if you have the <ieeefp.h> header file. */
 /* #undef HAVE_IEEEFP_H */
 
-/* Define if you have the signal function.  */
-#define HAVE_SIGNAL 1
+/* Define to 1 if you have the <inttypes.h> header file. */
+/* #define HAVE_INTTYPES_H 1 */
 
 /* Define to 1 if you have the `isascii' function. */
 #define HAVE_ISASCII 1
-/* Define if you have the sprintf function.  */
-#define HAVE_SPRINTF 1
 
-/* Define if you have the sscanf function.  */
-#define HAVE_SSCANF 1
+/* Define if isinf is there */
+/* #define HAVE_ISINF */
+
+/* Define if isnan is there */
+/* #define HAVE_ISNAN */
 
 /* Define to 1 if you have the `isnand' function. */
 /* #undef HAVE_ISNAND */
 
-/* Define if you have the stat function.  */
-/* #define HAVE_STAT 1 */
+/* Define if history library is there (-lhistory) */
+/* #undef HAVE_LIBHISTORY */
 
 /* Have compression library */
 /* #undef HAVE_LIBLZMA */
 
-/* Define if you have the strdup function.  */
-#define HAVE_STRDUP 1
+/* Define if pthread library is there (-lpthread) */
+/* #define HAVE_LIBPTHREAD */
 
 /* Define if you have the strerror function.  */
 #define HAVE_STRERROR 1
@@ -94,69 +106,94 @@
 /* Have compression library */
 /* #define HAVE_LIBZ 1 */
 
-/* Define if you have the strftime function.  */
-#define HAVE_STRFTIME 1
+/* Define to 1 if you have the <limits.h> header file. */
+#define HAVE_LIMITS_H 1
 
-/* Define if you have the strndup function.  */
-#define HAVE_STRNDUP 1
+/* Define to 1 if you have the `localtime' function. */
+#define HAVE_LOCALTIME 1
 
-/* Define if you have the vfprintf function.  */
+/* Define to 1 if you have the <lzma.h> header file. */
 /* #undef HAVE_LZMA_H */
 
-/* Define if you have the vsnprintf function.  */
-#define HAVE_VSNPRINTF 1
-
-/* Define if you have the vsprintf function.  */
-#define HAVE_VSPRINTF 1
-
-/* Define if you have the <ansidecl.h> header file.  */
-/* #undef HAVE_ANSIDECL_H */
-
-/* Define to 1 if you have the `mmap' function. */
-/* #define HAVE_ARPA_INET_H 1 */
-/* Define to 1 if you have the `munmap' function. */
-/* #define HAVE_MUNMAP 1 */
-/* Define if you have the <dirent.h> header file.  */
-/* #define HAVE_DIRENT_H 1 */
-
-/* Define if you have the <errno.h> header file.  */
-#define HAVE_ERRNO_H 1
-
-/* Define if you have the <fcntl.h> header file.  */
-/* #define HAVE_FCNTL_H 1 */
-
-/* Define if you have the <float.h> header file.  */
-/* #define HAVE_FLOAT_H 1 */
-
-/* Define if you have the <fp_class.h> header file.  */
-/* #undef HAVE_FP_CLASS_H */
-
-/* Define if you have the <ieeefp.h> header file.  */
-/* #undef HAVE_IEEEFP_H */
-/* Define to 1 if you have the `putenv' function. */
-/* #define HAVE_MALLOC_H 1 */
-
-/* Define if you have the <math.h> header file.  */
+/* Define to 1 if you have the <math.h> header file. */
 #define HAVE_MATH_H 1
 
-/* Define if you have the <nan.h> header file.  */
+/* Define to 1 if you have the <memory.h> header file. */
+/* #define HAVE_MEMORY_H 1 */
+
+/* Define to 1 if you have the `mmap' function. */
+/* #define HAVE_MMAP 1 */
+
+/* Define to 1 if you have the `munmap' function. */
+/* #define HAVE_MUNMAP 1 */
+
+/* mmap() is no good without munmap() */
+#if defined(HAVE_MMAP) && !defined(HAVE_MUNMAP)
+#  undef /**/ HAVE_MMAP
+#endif
+
+/* Define to 1 if you have the <nan.h> header file. */
 /* #undef HAVE_NAN_H */
 
-/* Define if you have the <ndir.h> header file.  */
+/* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
 /* #undef HAVE_NDIR_H */
 
-/* Define if you have the <netdb.h> header file.  */
-/* #define HAVE_NETDB_H 1 */
+/* Define to 1 if you have the <netdb.h> header file. */
+#define HAVE_NETDB_H 1
 
-/* Define if you have the <netinet/in.h> header file.  */
-/* #define HAVE_NETINET_IN_H 1 */
+/* Define to 1 if you have the <netinet/in.h> header file. */
+#define HAVE_NETINET_IN_H 1
 
-/* Define if you have the <signal.h> header file.  */
+/* Define to 1 if you have the <poll.h> header file. */
+/* #define HAVE_POLL_H 1 */
+
+/* Define to 1 if you have the `printf' function. */
+/* #define HAVE_PRINTF 1 */
+
+/* Define if <pthread.h> is there */
+/* #define HAVE_PTHREAD_H */
+
+/* Define to 1 if you have the `putenv' function. */
+/* #define HAVE_PUTENV 1 */
+
+/* Define to 1 if you have the `rand' function. */
+#define HAVE_RAND 1
+
+/* Define to 1 if you have the `rand_r' function. */
+/* #define HAVE_RAND_R 1 */
+
+/* Define to 1 if you have the <resolv.h> header file. */
+#define HAVE_RESOLV_H 1
+
+/* Have shl_load based dso */
+/* #undef HAVE_SHLLOAD */
+
+/* Define to 1 if you have the `signal' function. */
+#define HAVE_SIGNAL 1
+
+/* Define to 1 if you have the <signal.h> header file. */
 #define HAVE_SIGNAL_H 1
 
-/* Define if you have the <stdarg.h> header file.  */
+/* Define to 1 if you have the `snprintf' function. */
+#define HAVE_SNPRINTF 1
+
+/* Define to 1 if you have the `sprintf' function. */
+#define HAVE_SPRINTF 1
+
+/* Define to 1 if you have the `srand' function. */
+#define HAVE_SRAND 1
+
+/* Define to 1 if you have the `sscanf' function. */
+#define HAVE_SSCANF 1
+
+/* Define to 1 if you have the `stat' function. */
+/* #define HAVE_STAT 1 */
+
+/* Define to 1 if you have the <stdarg.h> header file. */
 #define HAVE_STDARG_H 1
 
+/* Define to 1 if you have the <stdint.h> header file. */
+/* #define HAVE_STDINT_H 1 */
 /* Define if you have the <stdlib.h> header file.  */
 #define HAVE_STDLIB_H 1
 
@@ -166,13 +203,20 @@
 /* Define to 1 if you have the `strerror' function. */
 #define HAVE_STRERROR 1
 
+/* Define to 1 if you have the `strftime' function. */
+#define HAVE_STRFTIME 1
+
+/* Define to 1 if you have the <strings.h> header file. */
+/* #define HAVE_STRINGS_H 1 */
+
 /* Define if you have the <string.h> header file.  */
 #define HAVE_STRING_H 1
 
 /* Define to 1 if you have the `strndup' function. */
 #define HAVE_STRNDUP 1
 
-/* Define if you have the <sys/dir.h> header file.  */
+/* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
+   */
 /* #undef HAVE_SYS_DIR_H */
 
 /* Define if you have the <sys/mman.h> header file.  */
@@ -190,6 +234,9 @@
 /* Define if you have the <sys/stat.h> header file.  */
 /* #define HAVE_SYS_STAT_H 1 */
 
+/* Define to 1 if you have the <sys/timeb.h> header file. */
+/* #define HAVE_SYS_TIMEB_H 1 */
+
 /* Define if you have the <sys/time.h> header file.  */
 /* #define HAVE_SYS_TIME_H 1 */
 
@@ -205,11 +252,17 @@
 /* Whether va_copy() is available */
 #define HAVE_VA_COPY 1
 
-/* Define if you have the <zlib.h> header file.  */
-/* #define HAVE_ZLIB_H 1 */
+/* Define to 1 if you have the `vfprintf' function. */
+#define HAVE_VFPRINTF 1
 
-/* Define if you have the inet library (-linet).  */
-/* #undef HAVE_ZLIB_H */
+/* Define to 1 if you have the `vsnprintf' function. */
+#define HAVE_VSNPRINTF 1
+
+/* Define to 1 if you have the `vsprintf' function. */
+#define HAVE_VSPRINTF 1
+
+/* Define to 1 if you have the <zlib.h> header file. */
+/* #define HAVE_ZLIB_H 1 */
 
 /* Define to 1 if you have the `_stat' function. */
 /* #undef HAVE__STAT */
@@ -220,6 +273,8 @@
 /* Define if you have the socket library (-lsocket).  */
 /* #undef HAVE_LIBSOCKET */
 
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
+/* #define LT_OBJDIR ".libs/" */
 
 /* Name of package */
 #define PACKAGE "libxml2"
@@ -249,13 +304,22 @@
 /* #define SUPPORT_IP6 */
 
 /* Version number of package */
-#define VERSION "2.8.0"
+#define VERSION "2.9.0"
 
 /* Determine what socket length (socklen_t) data type is */
 #define XML_SOCKLEN_T int
+
+/* Define for Solaris 2.5.1 so the uint32_t typedef from <sys/synch.h>,
+   <pthread.h>, or <semaphore.h> is not used. If the typedef were allowed, the
+   #define below would cause a syntax error. */
+/* #undef _UINT32_T */
 
 /* Using the Win32 Socket implementation */
 /* #undef _WINSOCKAPI_ */
 
 /* ss_family is not defined here, use __ss_family instead */
 /* #undef ss_family */
+
+/* Define to the type of an unsigned integer type of width exactly 32 bits if
+   such a type exists and the standard includes do not define it. */
+/* #undef uint32_t */

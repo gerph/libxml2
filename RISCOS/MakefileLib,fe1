@@ -78,7 +78,8 @@ CDEFINES   =
 # CDEFINES += -DHAVE_ZLIB_H
 
 # Objects to build, using the format o.<name> (will be varied for build type)
-OBJS       = o.c14n \
+OBJS       = o.buf \
+             o.c14n \
              o.catalog \
              o.chvalid \
              o.debugXML \
