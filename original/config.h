@@ -165,6 +165,9 @@
 /* Define if you have the <unistd.h> header file.  */
 /* #define HAVE_UNISTD_H 1 */
 
+/* Whether va_copy() is available */
+#define HAVE_VA_COPY 1
+
 /* Define if you have the <zlib.h> header file.  */
 /* #define HAVE_ZLIB_H 1 */
 
