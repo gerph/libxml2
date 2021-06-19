@@ -13,7 +13,9 @@
 #include <string.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
+#else
+#define STDOUT_FILENO fileno(stdout)
+#endif /* HAVE_UNISTD_H */
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
@@ -104,8 +106,14 @@ test_c14n(const char* xml_filename, int with_comments, int mode,
 	    with_comments, &result);
     if(ret >= 0) {
 	if(result != NULL) {
-	    fwrite(result, 1, ret, stderr); /* JRF: was write(1, result, ret); */
-	    xmlFree(result);          
+#ifdef __riscos
+	    if (fwrite(result, 1, ret, stdout) != ret) {
+#else
+	    if (write(1, result, ret) == -1) {
+#endif
+		fprintf(stderr, "Can't write data\n");
+	    }
+	    xmlFree(result);
 	}
     } else {
 	fprintf(stderr,"Error: failed to canonicalize XML file \"%s\" (ret=%d)\n", xml_filename, ret);
