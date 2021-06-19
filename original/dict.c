@@ -22,8 +22,12 @@
 #include <string.h>
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
+#else
+#ifdef HAVE_INTTYPES_H
+#include <inttypes.h>
 #elif defined(WIN32)
 typedef unsigned __int32 uint32_t;
+#endif
 #endif
 #include <libxml/tree.h>
 #include <libxml/dict.h>
@@ -694,7 +698,6 @@ xmlDictFree(xmlDictPtr dict) {
 		inside_dict = 0;
 		iter = next;
 	    }
-	    inside_dict = 0;
 	}
 	xmlFree(dict->dict);
     }
