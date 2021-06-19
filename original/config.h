@@ -1,6 +1,9 @@
 /* config.h.  Generated from config.h.in by configure.  */
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* A form that will not confuse apibuild.py */
+#define ATTRIBUTE_DESTRUCTOR __attribute__((destructor))
+
 /* Type cast for the gethostbyname() argument */
 #define GETHOSTBYNAME_ARG_CAST /**/
 
@@ -9,6 +12,9 @@
 
 /* Define to 1 if you have the <arpa/nameser.h> header file. */
 #define HAVE_ARPA_NAMESER_H 1
+
+/* Define if __attribute__((destructor)) is accepted */
+#define HAVE_ATTRIBUTE_DESTRUCTOR 1
 
 /* Whether struct sockaddr::__ss_family exists */
 /* #undef HAVE_BROKEN_SS_FAMILY */
@@ -37,7 +43,7 @@
 /* Define to 1 if you have the <float.h> header file. */
 #define HAVE_FLOAT_H 1
 
-/* Define if you have the fprintf function.  */
+/* Define to 1 if you have the `fprintf' function. */
 #define HAVE_FPRINTF 1
 
 /* Define to 1 if you have the `ftime' function. */
@@ -46,7 +52,7 @@
 /* Define if getaddrinfo is there */
 /* #define HAVE_GETADDRINFO */
 
-/* Define if you have the gettimeofday function */
+/* Define to 1 if you have the `gettimeofday' function. */
 /* #define HAVE_GETTIMEOFDAY 1 */
 
 /* Define to 1 if you have the <inttypes.h> header file. */
@@ -67,8 +73,8 @@
 /* Define if pthread library is there (-lpthread) */
 /* #define HAVE_LIBPTHREAD */
 
-/* Define if you have the strerror function.  */
-#define HAVE_STRERROR 1
+/* Define if readline library is there (-lreadline) */
+/* #undef HAVE_LIBREADLINE */
 
 /* Define to 1 if you have the <limits.h> header file. */
 #define HAVE_LIMITS_H 1
@@ -158,7 +164,8 @@
 
 /* Define to 1 if you have the <stdint.h> header file. */
 /* #define HAVE_STDINT_H 1 */
-/* Define if you have the <stdlib.h> header file.  */
+
+/* Define to 1 if you have the <stdlib.h> header file. */
 #define HAVE_STDLIB_H 1
 
 /* Define to 1 if you have the `strftime' function. */
@@ -167,33 +174,33 @@
 /* Define to 1 if you have the <strings.h> header file. */
 /* #define HAVE_STRINGS_H 1 */
 
-/* Define if you have the <string.h> header file.  */
+/* Define to 1 if you have the <string.h> header file. */
 #define HAVE_STRING_H 1
 
 /* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
    */
 /* #undef HAVE_SYS_DIR_H */
 
-/* Define if you have the <sys/mman.h> header file.  */
+/* Define to 1 if you have the <sys/mman.h> header file. */
 /* #define HAVE_SYS_MMAN_H 1 */
 
 /* Define to 1 if you have the <sys/ndir.h> header file, and it defines `DIR'.
    */
 /* #undef HAVE_SYS_NDIR_H */
 
-/* Define if you have the <sys/select.h> header file.  */
+/* Define to 1 if you have the <sys/select.h> header file. */
 /* #define HAVE_SYS_SELECT_H 1 */
 
-/* Define if you have the <sys/socket.h> header file.  */
+/* Define to 1 if you have the <sys/socket.h> header file. */
 /* #define HAVE_SYS_SOCKET_H 1 */
 
-/* Define if you have the <sys/stat.h> header file.  */
+/* Define to 1 if you have the <sys/stat.h> header file. */
 /* #define HAVE_SYS_STAT_H 1 */
 
 /* Define to 1 if you have the <sys/timeb.h> header file. */
 /* #define HAVE_SYS_TIMEB_H 1 */
 
-/* Define if you have the <sys/time.h> header file.  */
+/* Define to 1 if you have the <sys/time.h> header file. */
 /* #define HAVE_SYS_TIME_H 1 */
 
 /* Define to 1 if you have the <sys/types.h> header file. */
@@ -205,7 +212,7 @@
 /* Define to 1 if you have the <time.h> header file. */
 #define HAVE_TIME_H 1
 
-/* Define if you have the <unistd.h> header file.  */
+/* Define to 1 if you have the <unistd.h> header file. */
 /* #define HAVE_UNISTD_H 1 */
 
 /* Whether va_copy() is available */
@@ -223,11 +230,11 @@
 /* Define to 1 if you have the <zlib.h> header file. */
 /* #undef HAVE_ZLIB_H */
 
-/* Define if you have the nsl library (-lnsl).  */
-/* #undef HAVE_LIBNSL */
+/* Whether __va_copy() is available */
+/* #undef HAVE___VA_COPY */
 
-/* Define if you have the socket library (-lsocket).  */
-/* #undef HAVE_LIBSOCKET */
+/* Define as const if the declaration of iconv() needs const. */
+/* #define ICONV_CONST */
 
 /* Define to the sub-directory where libtool stores uninstalled libraries. */
 /* #define LT_OBJDIR ".libs/" */
@@ -239,19 +246,19 @@
 #define PACKAGE_BUGREPORT ""
 
 /* Define to the full name of this package. */
-#define PACKAGE_NAME ""
+#define PACKAGE_NAME "libxml2"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING ""
+#define PACKAGE_STRING "libxml2 2.9.12"
 
 /* Define to the one symbol short name of this package. */
-#define PACKAGE_TARNAME ""
+#define PACKAGE_TARNAME "libxml2"
 
 /* Define to the home page for this package. */
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION ""
+#define PACKAGE_VERSION "2.9.12"
 
 /* Type cast for the send() function 2nd arg */
 #define SEND_ARG2_CAST /**/
@@ -266,7 +273,7 @@
 #define VA_LIST_IS_ARRAY 1
 
 /* Version number of package */
-#define VERSION "2.9.8"
+#define VERSION "2.9.12"
 
 /* Determine what socket length (socklen_t) data type is */
 #define XML_SOCKLEN_T int
