@@ -170,7 +170,7 @@ htmlSetMetaEncoding(htmlDocPtr doc, const xmlChar *encoding) {
 
     if (encoding != NULL) {
 	snprintf(newcontent, sizeof(newcontent), "text/html; charset=%s",
-                encoding);
+                (char *)encoding);
 	newcontent[sizeof(newcontent) - 1] = 0;
     }
 
@@ -348,19 +348,19 @@ htmlSaveErr(int code, xmlNodePtr node, const char *extra)
 
     switch(code) {
         case XML_SAVE_NOT_UTF8:
-	    msg = "string is not in UTF-8";
+	    msg = "string is not in UTF-8\n";
 	    break;
 	case XML_SAVE_CHAR_INVALID:
-	    msg = "invalid character value";
+	    msg = "invalid character value\n";
 	    break;
 	case XML_SAVE_UNKNOWN_ENCODING:
-	    msg = "unknown encoding %s";
+	    msg = "unknown encoding %s\n";
 	    break;
 	case XML_SAVE_NO_DOCTYPE:
-	    msg = "HTML has no DOCTYPE";
+	    msg = "HTML has no DOCTYPE\n";
 	    break;
 	default:
-	    msg = "unexpected error number";
+	    msg = "unexpected error number\n";
     }
     __xmlSimpleError(XML_FROM_OUTPUT, code, node, msg, extra);
 }
@@ -506,22 +506,25 @@ htmlNodeDumpFile(FILE *out, xmlDocPtr doc, xmlNodePtr cur) {
 }
 
 /**
- * htmlDocDumpMemory:
+ * htmlDocDumpMemoryFormat:
  * @cur:  the document
  * @mem:  OUT: the memory pointer
  * @size:  OUT: the memory length
+ * @format:  should formatting spaces been added
  *
  * Dump an HTML document in memory and return the xmlChar * and it's size.
  * It's up to the caller to free the memory.
  */
 void
-htmlDocDumpMemory(xmlDocPtr cur, xmlChar**mem, int *size) {
+htmlDocDumpMemoryFormat(xmlDocPtr cur, xmlChar**mem, int *size, int format) {
     xmlOutputBufferPtr buf;
     xmlCharEncodingHandlerPtr handler = NULL;
     const char *encoding;
 
     xmlInitParser();
 
+    if ((mem == NULL) || (size == NULL))
+        return;
     if (cur == NULL) {
 	*mem = NULL;
 	*size = 0;
@@ -550,6 +553,8 @@ htmlDocDumpMemory(xmlDocPtr cur, xmlChar**mem, int *size) {
 		*size = 0;
 		return;
 	    }
+	} else {
+	    handler = xmlFindCharEncodingHandler(encoding);
 	}
     }
 
@@ -568,7 +573,8 @@ htmlDocDumpMemory(xmlDocPtr cur, xmlChar**mem, int *size) {
 	return;
     }
 
-    htmlDocContentDumpOutput(buf, cur, NULL);
+	htmlDocContentDumpFormatOutput(buf, cur, NULL, format);
+
     xmlOutputBufferFlush(buf);
     if (buf->conv != NULL) {
 	*size = buf->conv->use;
@@ -578,6 +584,20 @@ htmlDocDumpMemory(xmlDocPtr cur, xmlChar**mem, int *size) {
 	*mem = xmlStrndup(buf->buffer->content, *size);
     }
     (void)xmlOutputBufferClose(buf);
+}
+
+/**
+ * htmlDocDumpMemory:
+ * @cur:  the document
+ * @mem:  OUT: the memory pointer
+ * @size:  OUT: the memory length
+ *
+ * Dump an HTML document in memory and return the xmlChar * and it's size.
+ * It's up to the caller to free the memory.
+ */
+void
+htmlDocDumpMemory(xmlDocPtr cur, xmlChar**mem, int *size) {
+	htmlDocDumpMemoryFormat(cur, mem, size, 1);
 }
 
 
@@ -661,7 +681,9 @@ htmlAttrDumpOutput(xmlOutputBufferPtr buf, xmlDocPtr doc, xmlAttrPtr cur,
 		(cur->parent->ns == NULL) &&
 		((!xmlStrcasecmp(cur->name, BAD_CAST "href")) ||
 	         (!xmlStrcasecmp(cur->name, BAD_CAST "action")) ||
-		 (!xmlStrcasecmp(cur->name, BAD_CAST "src")))) {
+		 (!xmlStrcasecmp(cur->name, BAD_CAST "src")) ||
+		 ((!xmlStrcasecmp(cur->name, BAD_CAST "name")) &&
+		  (!xmlStrcasecmp(cur->parent->name, BAD_CAST "a"))))) {
 		xmlChar *escaped;
 		xmlChar *tmp = value;
 
@@ -745,7 +767,7 @@ htmlNodeDumpFormatOutput(xmlOutputBufferPtr buf, xmlDocPtr doc,
 
     xmlInitParser();
 
-    if (cur == NULL) {
+    if ((cur == NULL) || (buf == NULL)) {
 	return;
     }
     /*
@@ -753,8 +775,13 @@ htmlNodeDumpFormatOutput(xmlOutputBufferPtr buf, xmlDocPtr doc,
      */
     if (cur->type == XML_DTD_NODE)
 	return;
-    if (cur->type == XML_HTML_DOCUMENT_NODE) {
+    if ((cur->type == XML_HTML_DOCUMENT_NODE) ||
+        (cur->type == XML_DOCUMENT_NODE)){
 	htmlDocContentDumpOutput(buf, (xmlDocPtr) cur, encoding);
+	return;
+    }
+    if (cur->type == XML_ATTRIBUTE_NODE) {
+        htmlAttrDumpOutput(buf, doc, (xmlAttrPtr) cur, encoding);
 	return;
     }
     if (cur->type == HTML_TEXT_NODE) {
@@ -944,6 +971,9 @@ htmlDocContentDumpFormatOutput(xmlOutputBufferPtr buf, xmlDocPtr cur,
 
     xmlInitParser();
 
+    if ((buf == NULL) || (cur == NULL))
+        return;
+
     /*
      * force to output the stuff as HTML, especially for entities
      */
@@ -997,7 +1027,7 @@ htmlDocDump(FILE *f, xmlDocPtr cur) {
 
     xmlInitParser();
 
-    if (cur == NULL) {
+    if ((cur == NULL) || (f == NULL)) {
 	return(-1);
     }
 
@@ -1018,6 +1048,8 @@ htmlDocDump(FILE *f, xmlDocPtr cur) {
 	    handler = xmlFindCharEncodingHandler(encoding);
 	    if (handler == NULL)
 		return(-1);
+	} else {
+	    handler = xmlFindCharEncodingHandler(encoding);
 	}
     }
 
@@ -1053,6 +1085,9 @@ htmlSaveFile(const char *filename, xmlDocPtr cur) {
     const char *encoding;
     int ret;
 
+    if ((cur == NULL) || (filename == NULL))
+        return(-1);
+       
     xmlInitParser();
 
     encoding = (const char *) htmlGetMetaEncoding(cur);
@@ -1113,6 +1148,9 @@ htmlSaveFileFormat(const char *filename, xmlDocPtr cur,
     xmlCharEncodingHandlerPtr handler = NULL;
     int ret;
 
+    if ((cur == NULL) || (filename == NULL))
+        return(-1);
+       
     xmlInitParser();
 
     if (encoding != NULL) {
@@ -1174,4 +1212,6 @@ htmlSaveFileEnc(const char *filename, xmlDocPtr cur, const char *encoding) {
 
 #endif /* LIBXML_OUTPUT_ENABLED */
 
+#define bottom_HTMLtree
+#include "elfgcchack.h"
 #endif /* LIBXML_HTML_ENABLED */

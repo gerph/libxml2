@@ -16,6 +16,8 @@
 #include <libxml/xmlversion.h>
 #include <libxml/tree.h>
 
+#ifdef LIBXML_XINCLUDE_ENABLED
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -93,6 +95,10 @@ XMLPUBFUN int XMLCALL
 		xmlXIncludeProcessFlags	(xmlDocPtr doc,
 					 int flags);
 XMLPUBFUN int XMLCALL	
+		xmlXIncludeProcessFlagsData(xmlDocPtr doc,
+					 int flags,
+					 void *data);
+XMLPUBFUN int XMLCALL	
 		xmlXIncludeProcessTree	(xmlNodePtr tree);
 XMLPUBFUN int XMLCALL	
 		xmlXIncludeProcessTreeFlags(xmlNodePtr tree,
@@ -113,4 +119,7 @@ XMLPUBFUN int XMLCALL
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* LIBXML_XINCLUDE_ENABLED */
+
 #endif /* __XML_XINCLUDE_H__ */

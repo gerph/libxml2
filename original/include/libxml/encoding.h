@@ -115,7 +115,7 @@ typedef int (* xmlCharEncodingInputFunc)(unsigned char *out, int *outlen,
  *     if the transcoding failed.
  * The value of @inlen after return is the number of octets consumed
  *     if the return value is positive, else unpredictiable.
- * The value of @outlen after return is the number of ocetes consumed.
+ * The value of @outlen after return is the number of octets produced.
  */
 typedef int (* xmlCharEncodingOutputFunc)(unsigned char *out, int *outlen,
                                           const unsigned char *in, int *inlen);
@@ -207,48 +207,18 @@ XMLPUBFUN int XMLCALL
 /*
  * Export a few useful functions
  */
+#ifdef LIBXML_OUTPUT_ENABLED
 XMLPUBFUN int XMLCALL	
 	UTF8Toisolat1			(unsigned char *out,
 					 int *outlen,
 					 const unsigned char *in,
 					 int *inlen);
+#endif /* LIBXML_OUTPUT_ENABLED */
 XMLPUBFUN int XMLCALL	
 	isolat1ToUTF8			(unsigned char *out,
 					 int *outlen,
 					 const unsigned char *in,
 					 int *inlen);
-XMLPUBFUN int XMLCALL	
-	xmlGetUTF8Char			(const unsigned char *utf,
-					 int *len);
-/*
- * Export additional string routines which are "UTF-8 aware".
- */
-
-XMLPUBFUN int XMLCALL	
-	xmlCheckUTF8			(const unsigned char *utf);
-XMLPUBFUN int XMLCALL	
-	xmlUTF8Strsize			(const xmlChar *utf,
-					 int len);
-XMLPUBFUN xmlChar * XMLCALL 
-	xmlUTF8Strndup			(const xmlChar *utf,
-					 int len);
-XMLPUBFUN xmlChar * XMLCALL 
-	xmlUTF8Strpos			(const xmlChar *utf,
-					 int pos);
-XMLPUBFUN int XMLCALL	
-	xmlUTF8Strloc			(const xmlChar *utf,
-					 const xmlChar *utfchar);
-XMLPUBFUN xmlChar * XMLCALL 
-	xmlUTF8Strsub			(const xmlChar *utf,
-					 int start,
-					 int len);
-XMLPUBFUN int XMLCALL	
-	xmlUTF8Strlen			(const xmlChar *utf);
-XMLPUBFUN int XMLCALL	
-	xmlUTF8Size			(const xmlChar *utf);
-XMLPUBFUN int XMLCALL	
-	xmlUTF8Charcmp			(const xmlChar *utf1,
-					 const xmlChar *utf2);
 #ifdef __cplusplus
 }
 #endif

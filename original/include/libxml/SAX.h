@@ -18,6 +18,8 @@
 #include <libxml/parser.h>
 #include <libxml/xlink.h>
 
+#ifdef LIBXML_LEGACY_ENABLED
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -148,6 +150,7 @@ XMLPUBFUN void XMLCALL
 						 const xmlChar *value,
 						 int len);
 
+#ifdef LIBXML_SAX1_ENABLED
 XMLPUBFUN void XMLCALL		
 		initxmlDefaultSAXHandler	(xmlSAXHandlerV1 *hdlr,
 						 int warning);
@@ -159,7 +162,12 @@ XMLPUBFUN void XMLCALL
 XMLPUBFUN void XMLCALL		
 		initdocbDefaultSAXHandler	(xmlSAXHandlerV1 *hdlr);
 #endif
+#endif /* LIBXML_SAX1_ENABLED */
+
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* LIBXML_LEGACY_ENABLED */
+
 #endif /* __XML_SAX_H__ */

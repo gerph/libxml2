@@ -20,6 +20,7 @@
 #include <libxml/parserInternals.h>
 #include <libxml/xmlerror.h>
 #include <libxml/globals.h>
+#include <libxml/dict.h>
 
 /*
  * The XML predefined entities.
@@ -30,58 +31,110 @@ static xmlEntity xmlEntityLt = {
     NULL, NULL, NULL, NULL, NULL, NULL, 
     BAD_CAST "<", BAD_CAST "<", 1,
     XML_INTERNAL_PREDEFINED_ENTITY,
-    NULL, NULL, NULL, NULL, 0
+    NULL, NULL, NULL, NULL, 0, 1
 };
 static xmlEntity xmlEntityGt = {
     NULL, XML_ENTITY_DECL, BAD_CAST "gt",
     NULL, NULL, NULL, NULL, NULL, NULL, 
     BAD_CAST ">", BAD_CAST ">", 1,
     XML_INTERNAL_PREDEFINED_ENTITY,
-    NULL, NULL, NULL, NULL, 0
+    NULL, NULL, NULL, NULL, 0, 1
 };
 static xmlEntity xmlEntityAmp = {
     NULL, XML_ENTITY_DECL, BAD_CAST "amp",
     NULL, NULL, NULL, NULL, NULL, NULL, 
     BAD_CAST "&", BAD_CAST "&", 1,
     XML_INTERNAL_PREDEFINED_ENTITY,
-    NULL, NULL, NULL, NULL, 0
+    NULL, NULL, NULL, NULL, 0, 1
 };
 static xmlEntity xmlEntityQuot = {
     NULL, XML_ENTITY_DECL, BAD_CAST "quot",
     NULL, NULL, NULL, NULL, NULL, NULL, 
     BAD_CAST "\"", BAD_CAST "\"", 1,
     XML_INTERNAL_PREDEFINED_ENTITY,
-    NULL, NULL, NULL, NULL, 0
+    NULL, NULL, NULL, NULL, 0, 1
 };
 static xmlEntity xmlEntityApos = {
     NULL, XML_ENTITY_DECL, BAD_CAST "apos",
     NULL, NULL, NULL, NULL, NULL, NULL, 
     BAD_CAST "'", BAD_CAST "'", 1,
     XML_INTERNAL_PREDEFINED_ENTITY,
-    NULL, NULL, NULL, NULL, 0
+    NULL, NULL, NULL, NULL, 0, 1
 };
+
+/**
+ * xmlEntitiesErrMemory:
+ * @extra:  extra informations
+ *
+ * Handle an out of memory condition
+ */
+static void
+xmlEntitiesErrMemory(const char *extra)
+{
+    __xmlSimpleError(XML_FROM_TREE, XML_ERR_NO_MEMORY, NULL, NULL, extra);
+}
+
+/**
+ * xmlEntitiesErr:
+ * @code:  the error code
+ * @msg:  the message
+ *
+ * Handle an out of memory condition
+ */
+static void
+xmlEntitiesErr(xmlParserErrors code, const char *msg)
+{
+    __xmlSimpleError(XML_FROM_TREE, code, NULL, msg, NULL);
+}
 
 /*
  * xmlFreeEntity : clean-up an entity record.
  */
-static void xmlFreeEntity(xmlEntityPtr entity) {
-    if (entity == NULL) return;
+static void
+xmlFreeEntity(xmlEntityPtr entity)
+{
+    xmlDictPtr dict = NULL;
+
+    if (entity == NULL)
+        return;
+
+    if (entity->doc != NULL)
+        dict = entity->doc->dict;
+
 
     if ((entity->children) && (entity->owner == 1) &&
-	(entity == (xmlEntityPtr) entity->children->parent))
-	xmlFreeNodeList(entity->children);
-    if (entity->name != NULL)
-	xmlFree((char *) entity->name);
-    if (entity->ExternalID != NULL)
-        xmlFree((char *) entity->ExternalID);
-    if (entity->SystemID != NULL)
-        xmlFree((char *) entity->SystemID);
-    if (entity->URI != NULL)
-        xmlFree((char *) entity->URI);
-    if (entity->content != NULL)
-        xmlFree((char *) entity->content);
-    if (entity->orig != NULL)
-        xmlFree((char *) entity->orig);
+        (entity == (xmlEntityPtr) entity->children->parent))
+        xmlFreeNodeList(entity->children);
+    if (dict != NULL) {
+        if ((entity->name != NULL) && (!xmlDictOwns(dict, entity->name)))
+            xmlFree((char *) entity->name);
+        if ((entity->ExternalID != NULL) &&
+	    (!xmlDictOwns(dict, entity->ExternalID)))
+            xmlFree((char *) entity->ExternalID);
+        if ((entity->SystemID != NULL) &&
+	    (!xmlDictOwns(dict, entity->SystemID)))
+            xmlFree((char *) entity->SystemID);
+        if ((entity->URI != NULL) && (!xmlDictOwns(dict, entity->URI)))
+            xmlFree((char *) entity->URI);
+        if ((entity->content != NULL)
+            && (!xmlDictOwns(dict, entity->content)))
+            xmlFree((char *) entity->content);
+        if ((entity->orig != NULL) && (!xmlDictOwns(dict, entity->orig)))
+            xmlFree((char *) entity->orig);
+    } else {
+        if (entity->name != NULL)
+            xmlFree((char *) entity->name);
+        if (entity->ExternalID != NULL)
+            xmlFree((char *) entity->ExternalID);
+        if (entity->SystemID != NULL)
+            xmlFree((char *) entity->SystemID);
+        if (entity->URI != NULL)
+            xmlFree((char *) entity->URI);
+        if (entity->content != NULL)
+            xmlFree((char *) entity->content);
+        if (entity->orig != NULL)
+            xmlFree((char *) entity->orig);
+    }
     xmlFree(entity);
 }
 
@@ -92,23 +145,29 @@ static xmlEntityPtr
 xmlAddEntity(xmlDtdPtr dtd, const xmlChar *name, int type,
 	  const xmlChar *ExternalID, const xmlChar *SystemID,
 	  const xmlChar *content) {
+    xmlDictPtr dict = NULL;
     xmlEntitiesTablePtr table = NULL;
     xmlEntityPtr ret;
 
     if (name == NULL)
 	return(NULL);
+    if (dtd == NULL)
+	return(NULL);
+    if (dtd->doc != NULL)
+        dict = dtd->doc->dict;
+
     switch (type) {
         case XML_INTERNAL_GENERAL_ENTITY:
         case XML_EXTERNAL_GENERAL_PARSED_ENTITY:
         case XML_EXTERNAL_GENERAL_UNPARSED_ENTITY:
 	    if (dtd->entities == NULL)
-		dtd->entities = xmlHashCreate(0);
+		dtd->entities = xmlHashCreateDict(0, dict);
 	    table = dtd->entities;
 	    break;
         case XML_INTERNAL_PARAMETER_ENTITY:
         case XML_EXTERNAL_PARAMETER_ENTITY:
 	    if (dtd->pentities == NULL)
-		dtd->pentities = xmlHashCreate(0);
+		dtd->pentities = xmlHashCreateDict(0, dict);
 	    table = dtd->pentities;
 	    break;
         case XML_INTERNAL_PREDEFINED_ENTITY:
@@ -118,25 +177,37 @@ xmlAddEntity(xmlDtdPtr dtd, const xmlChar *name, int type,
 	return(NULL);
     ret = (xmlEntityPtr) xmlMalloc(sizeof(xmlEntity));
     if (ret == NULL) {
-	xmlGenericError(xmlGenericErrorContext,
-		"xmlAddEntity: out of memory\n");
+        xmlEntitiesErrMemory("xmlAddEntity:: malloc failed");
 	return(NULL);
     }
     memset(ret, 0, sizeof(xmlEntity));
     ret->type = XML_ENTITY_DECL;
+    ret->checked = 0;
 
     /*
      * fill the structure.
      */
-    ret->name = xmlStrdup(name);
     ret->etype = (xmlEntityType) type;
-    if (ExternalID != NULL)
-	ret->ExternalID = xmlStrdup(ExternalID);
-    if (SystemID != NULL)
-	ret->SystemID = xmlStrdup(SystemID);
+    if (dict == NULL) {
+	ret->name = xmlStrdup(name);
+	if (ExternalID != NULL)
+	    ret->ExternalID = xmlStrdup(ExternalID);
+	if (SystemID != NULL)
+	    ret->SystemID = xmlStrdup(SystemID);
+    } else {
+        ret->name = xmlDictLookup(dict, name, -1);
+	if (ExternalID != NULL)
+	    ret->ExternalID = xmlDictLookup(dict, ExternalID, -1);
+	if (SystemID != NULL)
+	    ret->SystemID = xmlDictLookup(dict, SystemID, -1);
+    }
     if (content != NULL) {
         ret->length = xmlStrlen(content);
-	ret->content = xmlStrndup(content, ret->length);
+	if ((dict != NULL) && (ret->length < 5))
+	    ret->content = (xmlChar *)
+	                   xmlDictLookup(dict, content, ret->length);
+	else
+	    ret->content = xmlStrndup(content, ret->length);
      } else {
         ret->length = 0;
         ret->content = NULL;
@@ -145,6 +216,7 @@ xmlAddEntity(xmlDtdPtr dtd, const xmlChar *name, int type,
 			the defining entity */
     ret->orig = NULL;
     ret->owner = 0;
+    ret->doc = dtd->doc;
 
     if (xmlHashAddEntry(table, name, ret)) {
 	/*
@@ -213,13 +285,13 @@ xmlAddDtdEntity(xmlDocPtr doc, const xmlChar *name, int type,
     xmlDtdPtr dtd;
 
     if (doc == NULL) {
-        xmlGenericError(xmlGenericErrorContext,
-	        "xmlAddDtdEntity: doc == NULL !\n");
+	xmlEntitiesErr(XML_DTD_NO_DOC,
+	        "xmlAddDtdEntity: document is NULL");
 	return(NULL);
     }
     if (doc->extSubset == NULL) {
-        xmlGenericError(xmlGenericErrorContext,
-	        "xmlAddDtdEntity: document without external subset !\n");
+	xmlEntitiesErr(XML_DTD_NO_DTD,
+	        "xmlAddDtdEntity: document without external subset");
 	return(NULL);
     }
     dtd = doc->extSubset;
@@ -262,13 +334,13 @@ xmlAddDocEntity(xmlDocPtr doc, const xmlChar *name, int type,
     xmlDtdPtr dtd;
 
     if (doc == NULL) {
-        xmlGenericError(xmlGenericErrorContext,
-	        "xmlAddDocEntity: document is NULL !\n");
+	xmlEntitiesErr(XML_DTD_NO_DOC,
+	        "xmlAddDocEntity: document is NULL");
 	return(NULL);
     }
     if (doc->intSubset == NULL) {
-        xmlGenericError(xmlGenericErrorContext,
-	        "xmlAddDocEntity: document without internal subset !\n");
+	xmlEntitiesErr(XML_DTD_NO_DTD,
+	        "xmlAddDocEntity: document without internal subset");
 	return(NULL);
     }
     dtd = doc->intSubset;
@@ -404,7 +476,7 @@ xmlGetDocEntity(xmlDocPtr doc, const xmlChar *name) {
     buffer = (xmlChar *)						\
     		xmlRealloc(buffer, buffer_size * sizeof(xmlChar));	\
     if (buffer == NULL) {						\
-	xmlGenericError(xmlGenericErrorContext, "realloc failed\n");	\
+        xmlEntitiesErrMemory("xmlEncodeEntitiesReentrant: realloc failed");\
 	return(NULL);							\
     }									\
 }
@@ -440,7 +512,7 @@ xmlEncodeEntitiesReentrant(xmlDocPtr doc, const xmlChar *input) {
     buffer_size = 1000;
     buffer = (xmlChar *) xmlMalloc(buffer_size * sizeof(xmlChar));
     if (buffer == NULL) {
-	xmlGenericError(xmlGenericErrorContext, "malloc failed\n");
+        xmlEntitiesErrMemory("xmlEncodeEntitiesReentrant: malloc failed");
 	return(NULL);
     }
     out = buffer;
@@ -489,7 +561,7 @@ xmlEncodeEntitiesReentrant(xmlDocPtr doc, const xmlChar *input) {
 		    *out++ = xc;
 	        } else
 		 */
-		    *out++ = *cur;
+		*out++ = *cur;
 	    } else {
 		/*
 		 * We assume we have UTF-8 input.
@@ -498,8 +570,8 @@ xmlEncodeEntitiesReentrant(xmlDocPtr doc, const xmlChar *input) {
 		int val = 0, l = 1;
 
 		if (*cur < 0xC0) {
-		    xmlGenericError(xmlGenericErrorContext,
-			    "xmlEncodeEntitiesReentrant : input not UTF-8\n");
+		    xmlEntitiesErr(XML_CHECK_NOT_UTF8,
+			    "xmlEncodeEntitiesReentrant : input not UTF-8");
 		    if (doc != NULL)
 			doc->encoding = xmlStrdup(BAD_CAST "ISO-8859-1");
 		    snprintf(buf, sizeof(buf), "&#%d;", *cur);
@@ -531,7 +603,7 @@ xmlEncodeEntitiesReentrant(xmlDocPtr doc, const xmlChar *input) {
 		    l = 4;
 		}
 		if ((l == 1) || (!IS_CHAR(val))) {
-		    xmlGenericError(xmlGenericErrorContext,
+		    xmlEntitiesErr(XML_ERR_INVALID_CHAR,
 			"xmlEncodeEntitiesReentrant : char out of range\n");
 		    if (doc != NULL)
 			doc->encoding = xmlStrdup(BAD_CAST "ISO-8859-1");
@@ -545,10 +617,7 @@ xmlEncodeEntitiesReentrant(xmlDocPtr doc, const xmlChar *input) {
 		/*
 		 * We could do multiple things here. Just save as a char ref
 		 */
-		if (html)
-		    snprintf(buf, sizeof(buf), "&#%d;", val);
-		else
-		    snprintf(buf, sizeof(buf), "&#x%X;", val);
+		snprintf(buf, sizeof(buf), "&#x%X;", val);
 		buf[sizeof(buf) - 1] = 0;
 		ptr = buf;
 		while (*ptr != 0) *out++ = *ptr++;
@@ -593,7 +662,7 @@ xmlEncodeSpecialChars(xmlDocPtr doc ATTRIBUTE_UNUSED, const xmlChar *input) {
     buffer_size = 1000;
     buffer = (xmlChar *) xmlMalloc(buffer_size * sizeof(xmlChar));
     if (buffer == NULL) {
-	xmlGenericError(xmlGenericErrorContext, "malloc failed\n");
+        xmlEntitiesErrMemory("xmlEncodeSpecialChars: malloc failed");
 	return(NULL);
     }
     out = buffer;
@@ -625,7 +694,6 @@ xmlEncodeSpecialChars(xmlDocPtr doc ATTRIBUTE_UNUSED, const xmlChar *input) {
 	    *out++ = 'm';
 	    *out++ = 'p';
 	    *out++ = ';';
-#if 0
 	} else if (*cur == '"') {
 	    *out++ = '&';
 	    *out++ = 'q';
@@ -633,7 +701,6 @@ xmlEncodeSpecialChars(xmlDocPtr doc ATTRIBUTE_UNUSED, const xmlChar *input) {
 	    *out++ = 'o';
 	    *out++ = 't';
 	    *out++ = ';';
-#endif
 	} else if (*cur == '\r') {
 	    *out++ = '&';
 	    *out++ = '#';
@@ -657,6 +724,7 @@ xmlEncodeSpecialChars(xmlDocPtr doc ATTRIBUTE_UNUSED, const xmlChar *input) {
  * xmlCreateEntitiesTable:
  *
  * create and initialize an empty entities hash table.
+ * This really doesn't make sense and should be deprecated
  *
  * Returns the xmlEntitiesTablePtr just created or NULL in case of error.
  */
@@ -705,8 +773,7 @@ xmlCopyEntity(xmlEntityPtr ent) {
 
     cur = (xmlEntityPtr) xmlMalloc(sizeof(xmlEntity));
     if (cur == NULL) {
-	xmlGenericError(xmlGenericErrorContext,
-		"xmlCopyEntity: out of memory !\n");
+        xmlEntitiesErrMemory("xmlCopyEntity:: malloc failed");
 	return(NULL);
     }
     memset(cur, 0, sizeof(xmlEntity));
@@ -794,6 +861,7 @@ xmlDumpEntityContent(xmlBufferPtr buf, const xmlChar *content) {
  */
 void
 xmlDumpEntityDecl(xmlBufferPtr buf, xmlEntityPtr ent) {
+    if ((buf == NULL) || (ent == NULL)) return;
     switch (ent->etype) {
 	case XML_INTERNAL_GENERAL_ENTITY:
 	    xmlBufferWriteChar(buf, "<!ENTITY ");
@@ -865,9 +933,8 @@ xmlDumpEntityDecl(xmlBufferPtr buf, xmlEntityPtr ent) {
 	    xmlBufferWriteChar(buf, ">\n");
 	    break;
 	default:
-	    xmlGenericError(xmlGenericErrorContext,
-		"xmlDumpEntitiesDecl: internal: unknown type %d\n",
-		    ent->etype);
+	    xmlEntitiesErr(XML_DTD_UNKNOWN_ENTITY,
+		"xmlDumpEntitiesDecl: internal: unknown type entity type");
     }
 }
 
@@ -895,3 +962,5 @@ xmlDumpEntitiesTable(xmlBufferPtr buf, xmlEntitiesTablePtr table) {
     xmlHashScan(table, (xmlHashScanner)xmlDumpEntityDeclScan, buf);
 }
 #endif /* LIBXML_OUTPUT_ENABLED */
+#define bottom_entities
+#include "elfgcchack.h"
