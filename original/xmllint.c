@@ -7,7 +7,7 @@
  */
 
 /* Justin's port version */
-#define PORTVERSION "1.36"
+#define PORTVERSION "1.37"
 
 #include "libxml.h"
 #include <stdlib.h>
@@ -3942,7 +3942,6 @@ main(int argc, char **argv) {
      */
     if (throwback)
     {
-      printf("THROWBACK-INSTALLED\n");
       xmlSetStructuredErrorFunc(NULL, xmllintErrorFunc);
     }
 #endif
