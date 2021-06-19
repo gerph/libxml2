@@ -1,9 +1,10 @@
 /*
- * xmlreader.h : Interfaces, constants and types of the XML streaming API.
+ * Summary: the XMLReader implementation
+ * Description: API of the XML streaming API based on C# interfaces.
  *
- * See Copyright for the status of this software.
+ * Copy: See Copyright for the status of this software.
  *
- * daniel@veillard.com
+ * Author: Daniel Veillard
  */
 
 #ifndef __XML_XMLREADER_H__
@@ -195,6 +196,10 @@ XMLPUBFUN xmlNodePtr XMLCALL
 		    xmlTextReaderCurrentNode	(xmlTextReaderPtr reader);
 XMLPUBFUN xmlNodePtr XMLCALL	
 		    xmlTextReaderPreserve	(xmlTextReaderPtr reader);
+XMLPUBFUN int XMLCALL	
+		    xmlTextReaderPreservePattern(xmlTextReaderPtr reader,
+		    				 const xmlChar *pattern,
+						 const xmlChar **namespaces);
 XMLPUBFUN xmlDocPtr XMLCALL	
 		    xmlTextReaderCurrentDoc	(xmlTextReaderPtr reader);
 XMLPUBFUN xmlNodePtr XMLCALL	

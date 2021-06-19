@@ -1983,7 +1983,7 @@ xmlCatalogListXMLResolveURI(xmlCatalogEntryPtr catal, const xmlChar *URI) {
 #define NEXT cur++;
 #define SKIP(x) cur += x;
 
-#define SKIP_BLANKS while (IS_BLANK(*cur)) NEXT;
+#define SKIP_BLANKS while (IS_BLANK_CH(*cur)) NEXT;
 
 /**
  * xmlParseSGMLCatalogComment:

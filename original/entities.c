@@ -625,6 +625,7 @@ xmlEncodeSpecialChars(xmlDocPtr doc ATTRIBUTE_UNUSED, const xmlChar *input) {
 	    *out++ = 'm';
 	    *out++ = 'p';
 	    *out++ = ';';
+#if 0
 	} else if (*cur == '"') {
 	    *out++ = '&';
 	    *out++ = 'q';
@@ -632,6 +633,7 @@ xmlEncodeSpecialChars(xmlDocPtr doc ATTRIBUTE_UNUSED, const xmlChar *input) {
 	    *out++ = 'o';
 	    *out++ = 't';
 	    *out++ = ';';
+#endif
 	} else if (*cur == '\r') {
 	    *out++ = '&';
 	    *out++ = '#';
@@ -741,6 +743,48 @@ xmlCopyEntitiesTable(xmlEntitiesTablePtr table) {
 #endif /* LIBXML_TREE_ENABLED */
 
 #ifdef LIBXML_OUTPUT_ENABLED
+
+/**
+ * xmlDumpEntityContent:
+ * @buf:  An XML buffer.
+ * @content:  The entity content.
+ *
+ * This will dump the quoted string value, taking care of the special
+ * treatment required by %
+ */
+static void
+xmlDumpEntityContent(xmlBufferPtr buf, const xmlChar *content) {
+    if (buf->alloc == XML_BUFFER_ALLOC_IMMUTABLE) return;
+    if (xmlStrchr(content, '%')) {
+        const xmlChar * base, *cur;
+
+	xmlBufferCCat(buf, "\"");
+	base = cur = content;
+	while (*cur != 0) {
+	    if (*cur == '"') {
+		if (base != cur)
+		    xmlBufferAdd(buf, base, cur - base);
+		xmlBufferAdd(buf, BAD_CAST "&quot;", 6);
+		cur++;
+		base = cur;
+	    } else if (*cur == '%') {
+		if (base != cur)
+		    xmlBufferAdd(buf, base, cur - base);
+		xmlBufferAdd(buf, BAD_CAST "&#x25;", 6);
+		cur++;
+		base = cur;
+	    } else {
+		cur++;
+	    }
+	}
+	if (base != cur)
+	    xmlBufferAdd(buf, base, cur - base);
+	xmlBufferCCat(buf, "\"");
+    } else {
+        xmlBufferWriteQuotedString(buf, content);
+    }
+}
+
 /**
  * xmlDumpEntityDecl:
  * @buf:  An XML buffer.
@@ -758,7 +802,7 @@ xmlDumpEntityDecl(xmlBufferPtr buf, xmlEntityPtr ent) {
 	    if (ent->orig != NULL)
 		xmlBufferWriteQuotedString(buf, ent->orig);
 	    else
-		xmlBufferWriteQuotedString(buf, ent->content);
+		xmlDumpEntityContent(buf, ent->content);
 	    xmlBufferWriteChar(buf, ">\n");
 	    break;
 	case XML_EXTERNAL_GENERAL_PARSED_ENTITY:
@@ -801,7 +845,7 @@ xmlDumpEntityDecl(xmlBufferPtr buf, xmlEntityPtr ent) {
 	    xmlBufferWriteCHAR(buf, ent->name);
 	    xmlBufferWriteChar(buf, " ");
 	    if (ent->orig == NULL)
-		xmlBufferWriteQuotedString(buf, ent->content);
+		xmlDumpEntityContent(buf, ent->content);
 	    else
 		xmlBufferWriteQuotedString(buf, ent->orig);
 	    xmlBufferWriteChar(buf, ">\n");

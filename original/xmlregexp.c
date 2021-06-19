@@ -21,11 +21,19 @@
 
 #include <stdio.h>
 #include <string.h>
+#ifdef HAVE_LIMITS_H
+#include <limits.h>
+#endif
+
 #include <libxml/tree.h>
 #include <libxml/parserInternals.h>
 #include <libxml/xmlregexp.h>
 #include <libxml/xmlautomata.h>
 #include <libxml/xmlunicode.h>
+
+#ifndef INT_MAX
+#define INT_MAX 123456789 /* easy to flag and big enough for our needs */
+#endif
 
 /* #define DEBUG_REGEXP_GRAPH  */
 /* #define DEBUG_REGEXP_EXEC */
@@ -141,7 +149,7 @@ typedef struct _xmlRegRange xmlRegRange;
 typedef xmlRegRange *xmlRegRangePtr;
 
 struct _xmlRegRange {
-    int neg;
+    int neg;		/* 0 normal, 1 not, 2 exclude */
     xmlRegAtomType type;
     int start;
     int end;
@@ -1992,14 +2000,23 @@ xmlRegCheckCharacter(xmlRegAtomPtr atom, int codepoint) {
             return(codepoint == atom->codepoint);
         case XML_REGEXP_RANGES: {
 	    int accept = 0;
+
 	    for (i = 0;i < atom->nbRanges;i++) {
 		range = atom->ranges[i];
-		if (range->neg) {
+		if (range->neg == 2) {
 		    ret = xmlRegCheckCharacterRange(range->type, codepoint,
 						0, range->start, range->end,
 						range->blockName);
 		    if (ret != 0)
 			return(0); /* excluded char */
+		} else if (range->neg) {
+		    ret = xmlRegCheckCharacterRange(range->type, codepoint,
+						0, range->start, range->end,
+						range->blockName);
+		    if (ret == 0)
+		        accept = 1;
+		    else
+		        return(0);
 		} else {
 		    ret = xmlRegCheckCharacterRange(range->type, codepoint,
 						0, range->start, range->end,
@@ -2199,6 +2216,8 @@ xmlFARegExec(xmlRegexpPtr comp, const xmlChar *content) {
     exec->state = comp->states[0];
     exec->transno = 0;
     exec->transcount = 0;
+    exec->inputStack = NULL;
+    exec->inputStackMax = 0;
     if (comp->nbCounters > 0) {
 	exec->counts = (int *) xmlMalloc(comp->nbCounters * sizeof(int));
 	if (exec->counts == NULL) {
@@ -3629,8 +3648,9 @@ xmlFAParseCharGroup(xmlRegParserCtxtPtr ctxt) {
 	    xmlFAParsePosCharGroup(ctxt);
 	    ctxt->neg = neg;
 	} else if (CUR == '-') {
+	    int neg = ctxt->neg;
 	    NEXT;
-	    ctxt->neg = !ctxt->neg;
+	    ctxt->neg = 2;
 	    if (CUR != '[') {
 		ERROR("charClassExpr: '[' expected");
 		break;
@@ -3643,6 +3663,7 @@ xmlFAParseCharGroup(xmlRegParserCtxtPtr ctxt) {
 		ERROR("charClassExpr: ']' expected");
 		break;
 	    }
+	    ctxt->neg = neg;
 	    break;
 	} else if (CUR != ']') {
 	    xmlFAParsePosCharGroup(ctxt);
@@ -3736,9 +3757,16 @@ xmlFAParseQuantifier(xmlRegParserCtxtPtr ctxt) {
 	    min = cur;
 	if (CUR == ',') {
 	    NEXT;
-	    cur = xmlFAParseQuantExact(ctxt);
-	    if (cur >= 0)
-		max = cur;
+	    if (CUR == '}')
+	        max = INT_MAX;
+	    else {
+	        cur = xmlFAParseQuantExact(ctxt);
+	        if (cur >= 0)
+		    max = cur;
+		else {
+		    ERROR("Improper quantifier");
+		}
+	    }
 	}
 	if (CUR == '}') {
 	    NEXT;

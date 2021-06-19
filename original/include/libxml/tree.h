@@ -1,11 +1,12 @@
 /*
- * tree.h : describes the structures found in an tree resulting
- *          from an XML parsing.
+ * Summary: interfaces for tree manipulation
+ * Description: this module describes the structures found in an tree resulting
+ *              from an XML or HTML parsing, as well as the API provided for
+ *              various processing on that tree
  *
- * See Copyright for the status of this software.
+ * Copy: See Copyright for the status of this software.
  *
- * daniel@veillard.com
- *
+ * Author: Daniel Veillard
  */
 
 #ifndef __XML_TREE_H__
@@ -390,6 +391,7 @@ struct _xmlID {
     xmlAttrPtr        attr;	/* The attribute holding it */
     const xmlChar    *name;	/* The attribute if attr is not available */
     int               lineno;	/* The line number if attr is not available */
+    struct _xmlDoc   *doc;	/* The document holding the ID */
 };
 
 /**
@@ -475,11 +477,9 @@ struct _xmlNode {
  * XML_GET_LINE:
  *
  * Macro to extract the line number of an element node. 
- * This will work only if line numbering is activated by
- * calling xmlLineNumbersDefault(1) before parsing.
  */
 #define XML_GET_LINE(n)						\
-    ((n)->type == XML_ELEMENT_NODE ? (int) (n)->content : 0)
+    (xmlGetLineNo(n))
 
 
 /**
