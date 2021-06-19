@@ -328,7 +328,8 @@ static void usage(const char *name) {
 #endif
     printf("\
 Usage : %s [options] catalogfile entities...\n\
-\tParse the catalog file and query it for the entities\n\
+\tParse the catalog file (void specification possibly expressed as \"\"\n\
+\tappoints the default system one) and query it for the entities\n\
 \nSwitches:\n\
 \t--sgml : handle SGML Super catalogs for --add and --del\n\
 \t--shell : run a shell allowing interactive queries\n\
@@ -425,11 +426,18 @@ int main(int argc, char **argv) {
 	    continue;
 	} else if (argv[i][0] == '-')
 	    continue;
-	filename = argv[i];
+
+	if (filename == NULL && argv[i][0] == '\0') {
+	    /* Interpret empty-string catalog specification as
+	       a shortcut for a default system catalog. */
+	    xmlInitializeCatalog();
+	} else {
+	    filename = argv[i];
 	    ret = xmlLoadCatalog(argv[i]);
 	    if ((ret < 0) && (create)) {
 		xmlCatalogAdd(BAD_CAST "catalog", BAD_CAST argv[i], NULL);
 	    }
+	}
 	break;
     }
 
