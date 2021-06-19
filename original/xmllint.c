@@ -210,6 +210,7 @@ static xmlStreamCtxtPtr patstream = NULL;
 #endif
 static int options = XML_PARSE_COMPACT;
 static int sax = 0;
+static int oldxml10 = 0;
 
 /************************************************************************
  *									*
@@ -3202,6 +3203,7 @@ static void usage(const char *name) {
     printf("\t--copy : used to test the internal copy implementation\n");
 #endif /* LIBXML_TREE_ENABLED */
     printf("\t--recover : output what was parsable on broken XML documents\n");
+    printf("\t--huge : remove any internal arbitrary parser limits\n");
     printf("\t--noent : substitute entity references by their value\n");
     printf("\t--noout : don't output the result tree\n");
     printf("\t--path 'paths': provide a set of paths for resources\n");
@@ -3266,6 +3268,7 @@ static void usage(const char *name) {
 #ifdef LIBXML_XINCLUDE_ENABLED
     printf("\t--xinclude : do XInclude processing\n");
     printf("\t--noxincludenode : same but do not generate XInclude nodes\n");
+    printf("\t--nofixup-base-uris : do not fixup xml:base uris\n");
 #endif
     printf("\t--loaddtd : fetch external DTD\n");
     printf("\t--dtdattr : loaddtd + populate the tree with inherited attributes \n");
@@ -3291,6 +3294,7 @@ static void usage(const char *name) {
     printf("\t--sax1: use the old SAX1 interfaces for processing\n");
 #endif
     printf("\t--sax: do not build a tree but work just at the SAX level\n");
+    printf("\t--oldxml10: use XML-1.0 parsing rules before the 5th edition\n");
 
     printf("\nLibxml project home page: http://xmlsoft.org/\n");
     printf("To report bugs or get some help check: http://xmlsoft.org/bugs.html\n");
@@ -3348,6 +3352,9 @@ main(int argc, char **argv) {
 	         (!strcmp(argv[i], "--recover"))) {
 	    recovery++;
 	    options |= XML_PARSE_RECOVER;
+	} else if ((!strcmp(argv[i], "-huge")) ||
+	         (!strcmp(argv[i], "--huge"))) {
+	    options |= XML_PARSE_HUGE;
 	} else if ((!strcmp(argv[i], "-noent")) ||
 	         (!strcmp(argv[i], "--noent"))) {
 	    noent++;
@@ -3469,6 +3476,12 @@ main(int argc, char **argv) {
 	    xinclude++;
 	    options |= XML_PARSE_XINCLUDE;
 	    options |= XML_PARSE_NOXINCNODE;
+	}
+	else if ((!strcmp(argv[i], "-nofixup-base-uris")) ||
+	         (!strcmp(argv[i], "--nofixup-base-uris"))) {
+	    xinclude++;
+	    options |= XML_PARSE_XINCLUDE;
+	    options |= XML_PARSE_NOBASEFIX;
 	}
 #endif
 #ifdef LIBXML_OUTPUT_ENABLED
@@ -3622,6 +3635,10 @@ main(int argc, char **argv) {
 	    i++;
 	    pattern = argv[i];
 #endif
+	} else if ((!strcmp(argv[i], "-oldxml10")) ||
+	           (!strcmp(argv[i], "--oldxml10"))) {
+	    oldxml10++;
+	    options |= XML_PARSE_OLD10;
 	} else {
 	    fprintf(stderr, "Unknown option %s\n", argv[i]);
 	    usage(argv[0]);

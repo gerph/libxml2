@@ -5,6 +5,8 @@
 
 #include <stdarg.h> /* for vsnprintf */
 
+typedef unsigned long uint32_t;
+
 /* DUMMY implementation - it works, but it's limited in the size it can
    write. Unfortunately RISC OS clib isn't all that helpful in not providing
    an snprintf implementation. */
