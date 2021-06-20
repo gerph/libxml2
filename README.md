@@ -63,7 +63,7 @@ or:
     - `git add c/* h/* include/libxml/h/*`
 - Commit the merged version of the vendor branch.
     - `git commit`
-- Update the `PORTVERSION` in the `c/xmllint` and `c/xmlcatalog` files.
+- Update the `VersionNum` file with a new version number.
 - Test the new version and add any changed files.
 - Commit changes to the merging branch.
     - `git commit`

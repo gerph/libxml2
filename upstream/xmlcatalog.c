@@ -7,7 +7,7 @@
  */
 
 /* Gerph's port version */
-#define PORTVERSION "1.39"
+#include "VersionNum"
 
 #include "libxml.h"
 
@@ -321,11 +321,11 @@ static void usershell(void) {
  *									*
  ************************************************************************/
 static void usage(const char *name) {
-    /* split into 2 printf's to avoid overly long string (gcc warning) */
 #ifdef __riscos
-    printf("xmlcatalog, RISC OS port " PORTVERSION
+    printf("xmlcatalog, RISC OS port " Module_MajorVersion
            " (" __DATE__ ") by Gerph\n");
 #endif
+    /* split into 2 printf's to avoid overly long string (gcc warning) */
     printf("\
 Usage : %s [options] catalogfile entities...\n\
 \tParse the catalog file (void specification possibly expressed as \"\"\n\

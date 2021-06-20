@@ -7,7 +7,7 @@
  */
 
 /* Gerph's port version */
-#define PORTVERSION "1.39"
+#include "VersionNum"
 
 #include "libxml.h"
 #include <stdlib.h>
@@ -3342,7 +3342,7 @@ static void showVersion(const char *name) {
     if (xmlHasFeature(XML_WITH_LZMA)) fprintf(stderr, "Lzma ");
     fprintf(stderr, "\n");
 #ifdef __riscos
-    fprintf(stderr, "         RISC OS port " PORTVERSION
+    fprintf(stderr, "         RISC OS port " Module_MajorVersion
                     " (" __DATE__ ") by Gerph\n");
 #endif
 }
