@@ -51,7 +51,9 @@ OBJS       = o.${TARGET} \
 			 o.throwback
 
 # Space separated list of XML files for building documentation.
-#DOCSRC = <prm-in-xml-sources>
+ifeq (${TARGET},xmllint)
+DOCSRC = prminxml/xmltools.xml
+endif
 
 
 include LibraryCommand

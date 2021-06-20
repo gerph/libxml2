@@ -59,6 +59,7 @@ catalog files describing catalog entries.</p>
                     description="Command line tool to parse and manipulate XML or SGML catalog files.">
 <syntax>
  <optional alternates="true">
+  <switch name="sgml" />
   <switch name="shell" />
   <switch name="create" />
   <switch name="add">
@@ -71,11 +72,14 @@ catalog files describing catalog entries.</p>
   </switch>
   <switch name="noout" />
   <switch name="verbose" />
+  <switch name="no-super-update" />
  </optional>
  <optional><userreplace>catalog-file</userreplace></optional>
  <optional><userreplace>entities</userreplace></optional>
 </syntax>
 
+<parameter switch="sgml">
+ Modify the SGML super catalogs when --add and --del are used</parameter>
 <parameter switch="shell">
  Run a shell allowing interactive queries on catalog file</parameter>
 <parameter switch="create">
@@ -122,13 +126,15 @@ catalog files describing catalog entries.</p>
 
 <parameter switch="del">
  Remove entries from the catalog file <userreplace>filename</userreplace>
- matching <userreplace>'values'</userreplace>. This switch will not
+ matching <userreplace>values</userreplace>. This switch will not
  overwrite <userreplace>filename</userreplace>, outputing to
  stdout, unless <switch name="noout" /> is used.
 </parameter>
 <parameter switch="noout">
- Save output to the named file rather than outputing to stdout.
+ Save output to the named catalogs rather than outputing to stdout.
 </parameter>
+<parameter switch="no-super-update">
+ Do not update SGML super catalogs</parameter>
 <parameter switch="verbose">
  output debugging information.
 </parameter>
@@ -180,8 +186,6 @@ xmlcatalog is executing</value>
 
 <related>
 <reference type="command" name="XMLLint" />
-<!-- <reference type="swi" name="thingy" /> -->
-<!-- <reference type="vector" name="bingleV" /> -->
 </related>
 
 </command-definition>
@@ -190,39 +194,70 @@ xmlcatalog is executing</value>
 <command-definition name="XMLLint"
                     description="Parse the XML files and output the result of the parsing">
 <syntax>
+
  <optional><switch name="version" /></optional>
  <optional><switch name="debug" /></optional>
  <optional><switch name="shell" /></optional>
  <optional><switch name="debugent" /></optional>
  <optional><switch name="copy" /></optional>
  <optional><switch name="recover" /></optional>
+ <optional><switch name="huge" /></optional>
  <optional><switch name="noent" /></optional>
+ <optional><switch name="noenc" /></optional>
  <optional><switch name="noout" /></optional>
+ <optional><switch name="path" /><userreplace>paths</userreplace></optional>
+ <optional><switch name="load-trace" /></optional>
+ <optional><switch name="nonet" /></optional>
+ <optional><switch name="nocompact" /></optional>
  <optional><switch name="htmlout" /></optional>
  <optional><switch name="nowrap" /></optional>
  <optional><switch name="valid" /></optional>
  <optional><switch name="postvalid" /></optional>
  <optional><switch name="dtdvalid" /><userreplace>URL</userreplace></optional>
+ <optional><switch name="dtdvalidfpi" /><userreplace>FPI</userreplace></optional>
+ <optional><switch name="quiet" /></optional>
  <optional><switch name="timing" /></optional>
  <optional><switch name="output" /><userreplace>file</userreplace></optional>
  <optional><switch name="repeat" /></optional>
  <optional><switch name="insert" /></optional>
- <optional><switch name="sgml" /></optional>
  <optional><switch name="html" /></optional>
+ <optional><switch name="xmlout" /></optional>
+ <optional><switch name="nodefdtd" /></optional>
  <optional><switch name="push" /></optional>
- <optional><switch name="nowarnings" /></optional>
+ <optional><switch name="pushsmall" /></optional>
+ <optional><switch name="maxmem" /><userreplace>nbbytes</userreplace></optional>
+ <optional><switch name="nowarning" /></optional>
  <optional><switch name="noblanks" /></optional>
+ <optional><switch name="nocdata" /></optional>
  <optional><switch name="format" /></optional>
- <optional><switch name="testIO" /></optional>
  <optional><switch name="encode" /><userreplace>encoding</userreplace></optional>
+ <optional><switch name="dropdtd" /></optional>
+ <optional><switch name="pretty" /><userreplace>style</userreplace></optional>
+ <optional><switch name="c14n" /></optional>
+ <optional><switch name="c14n11" /></optional>
+ <optional><switch name="exc" /></optional>
+ <optional><switch name="nsclean" /></optional>
+ <optional><switch name="testIO" /></optional>
  <optional><switch name="catalogs" /></optional>
  <optional><switch name="nocatalogs" /></optional>
  <optional><switch name="auto" /></optional>
  <optional><switch name="xinclude" /></optional>
+ <optional><switch name="noxincludenode" /></optional>
+ <optional><switch name="nofixup-base-uris" /></optional>
  <optional><switch name="loaddtd" /></optional>
  <optional><switch name="dtdattr" /></optional>
- <optional><switch name="dropdtd" /></optional>
  <optional><switch name="throwback" /></optional>
+ <optional><switch name="stream" /></optional>
+ <optional><switch name="walker" /></optional>
+ <optional><switch name="pattern" /><userreplace>pattern</userreplace></optional>
+ <optional><switch name="chkregister" /></optional>
+ <optional><switch name="relaxng" /><userreplace>schema</userreplace></optional>
+ <optional><switch name="schema" /><userreplace>schema</userreplace></optional>
+ <optional><switch name="sax1" /></optional>
+ <optional><switch name="sax" /></optional>
+ <optional><switch name="oldxml10" /></optional>
+ <optional><switch name="xpath" /><userreplace>expr</userreplace></optional>
+
 </syntax>
 
 <parameter switch="version">display the version of the XML library used</parameter>
@@ -231,33 +266,66 @@ xmlcatalog is executing</value>
 <parameter switch="debugent">debug the entities defined in the document</parameter>
 <parameter switch="copy">used to test the internal copy implementation</parameter>
 <parameter switch="recover">output what was parsable on broken XML documents</parameter>
+<parameter switch="huge">remove any internal arbitrary parser limits</parameter>
 <parameter switch="noent">substitute entity references by their value</parameter>
+<parameter switch="noenc">ignore any encoding specified inside the document</parameter>
 <parameter switch="noout">don't output the result tree</parameter>
+<parameter switch="path" name="paths">provide a set of paths for resources</parameter>
+<parameter switch="load-trace">print trace of all external entities loaded</parameter>
+<parameter switch="nonet">refuse to fetch DTDs or entities over network</parameter>
+<parameter switch="nocompact">do not generate compact text nodes</parameter>
 <parameter switch="htmlout">output results as HTML</parameter>
 <parameter switch="nowrap">do not put HTML doc wrapper</parameter>
 <parameter switch="valid">validate the document in addition to std well-formed check</parameter>
 <parameter switch="postvalid">do a posteriori validation, i.e after parsing</parameter>
 <parameter switch="dtdvalid" name="URL">do a posteriori validation against a given DTD</parameter>
+<parameter switch="dtdvalidfpi" name="FPI">same as 'dtdvalid' but name the DTD with a Public Identifier</parameter>
+<parameter switch="quiet">be quiet when succeeded</parameter>
 <parameter switch="timing">print some timings</parameter>
 <parameter switch="output" name="file">save output to a given file</parameter>
 <parameter switch="repeat">repeat 100 times, for timing or profiling</parameter>
 <parameter switch="insert">ad-hoc test for valid insertions</parameter>
-<parameter switch="sgml">use the DocBook SGML parser</parameter>
 <parameter switch="html">use the HTML parser</parameter>
+<parameter switch="xmlout">force to use the XML serializer when using --html</parameter>
+<parameter switch="nodefdtd">do not default HTML doctype</parameter>
 <parameter switch="push">use the push mode of the parser</parameter>
+<parameter switch="pushsmall">use the push mode of the parser using tiny increments</parameter>
+<parameter switch="maxmem" name="nbbytes">limits memory allocation to nbbytes bytes</parameter>
 <parameter switch="nowarning">do not emit warnings from parser/validator</parameter>
 <parameter switch="noblanks">drop (ignorable?) blanks spaces</parameter>
+<parameter switch="nocdata">replace cdata section with text nodes</parameter>
 <parameter switch="format">reformat/reindent the input</parameter>
-<parameter switch="testIO">test user I/O support</parameter>
 <parameter switch="encode" name="encoding">output in the given encoding</parameter>
-<parameter switch="catalogs">use SGML catalogs from SGML$CatalogFiles</parameter>
-<parameter switch="nocatalog">deactivate all catalogs</parameter>
+<parameter switch="dropdtd">remove the DOCTYPE of the input docs</parameter>
+<parameter switch="pretty" name="style">pretty-print in a particular style<br/>
+                     0 : Do not pretty print<br/>
+                     1 : Format the XML content, as --format<br/>
+                     2 : Add whitespace inside tags, preserving content</parameter>
+<parameter switch="c14n">save in W3C canonical format v1.0 (with comments)</parameter>
+<parameter switch="c14n11">save in W3C canonical format v1.1 (with comments)</parameter>
+<parameter switch="exc-c14n">save in W3C exclusive canonical format (with comments)</parameter>
+<parameter switch="nsclean">remove redundant namespace declarations</parameter>
+<parameter switch="testIO">test user I/O support</parameter>
+<parameter switch="catalogs">use SGML catalogs from SGML$CatalogFiles, otherwise XML Catalogs starting from
+                 XML$CatalogFiles are activated by default</parameter>
+<parameter switch="nocatalogs">deactivate all catalogs</parameter>
 <parameter switch="auto">generate a small doc on the fly</parameter>
 <parameter switch="xinclude">do XInclude processing</parameter>
+<parameter switch="noxincludenode">same but do not generate XInclude nodes</parameter>
+<parameter switch="nofixup-base-uris">do not fixup xml:base uris</parameter>
 <parameter switch="loaddtd">fetch external DTD</parameter>
 <parameter switch="dtdattr">loaddtd and populate the tree with inherited attributes</parameter>
-<parameter switch="dropdtd">remove DOCTYPE declaration from input documents</parameter>
 <parameter switch="throwback">provide feedback to external tasks</parameter>
+<parameter switch="stream">use the streaming interface to process very large files</parameter>
+<parameter switch="walker">create a reader and walk though the resulting doc</parameter>
+<parameter switch="pattern" name="pattern_value">test the pattern support</parameter>
+<parameter switch="chkregister"> verify the node registration code</parameter>
+<parameter switch="relaxng" name="schema">do RelaxNG validation against the schema</parameter>
+<parameter switch="schema" name="schema">do validation against the WXS schema</parameter>
+<parameter switch="sax1">use the old SAX1 interfaces for processing</parameter>
+<parameter switch="sax">do not build a tree but work just at the SAX level</parameter>
+<parameter switch="oldxml10">use XML-1.0 parsing rules before the 5th edition</parameter>
+<parameter switch="xpath" name="expr">evaluate the XPath expression, imply --noout</parameter>
 
 <use>
 <p>xmllint is a command line application allowing users to process XML. It
@@ -267,8 +335,6 @@ is included in libxml2.</p>
 
 <related>
 <reference type="command" name="XMLCatalog" />
-<!-- <reference type="swi" name="thingy" /> -->
-<!-- <reference type="vector" name="bingleV" /> -->
 </related>
 
 </command-definition>
@@ -279,27 +345,29 @@ is included in libxml2.</p>
 <!-- MetaData -->
 <meta>
  <maintainer>
-  <email name="Justin Fletcher" address="justin.fletcher@ntlworld.com" />
+  <email name="Gerph" address="gerph@gerph.org" />
  </maintainer>
  <disclaimer>
   <p>
-   This document covers the RISC OS version of the XML tools from LibXML2,
-   LibXSLT and XSLDebug.<br />
-   It is maintained exclusively by the Justin Fletcher, based on the
+   This document covers the RISC OS version of the XML tools from LibXML2.<br />
+   It is maintained by Gerph, based on the
    documentation originally written by the authors of the libraries.
   </p>
  </disclaimer>
 
  <history>
-  <revision number="1" date="15 Dec 2002" author="JRF" title="Initial version">
+  <revision number="1" date="15 Dec 2002" author="Gerph" title="Initial version">
   </revision>
-  <revision number="2" date="15 Jan 2002" author="JRF" title="LibXML 2.4.13">
-   <change>XMLLint: -output, and -dropdtd documented</change>
-   <change>Added note about filename usage</change>
+  <revision number="2" date="15 Jan 2002" author="Gerph" title="LibXML 2.4.13">
+   <change>XMLLint: -output, and -dropdtd documented.</change>
+   <change>Added note about filename usage.</change>
+  </revision>
+  <revision number="3" date="20 Jun 2021" author="Gerph" title="LibXML 2.9.12">
+   <change>Huge upgrade for ~17 years development of LibXML.</change>
+   <change>Updated documentation of features.</change>
   </revision>
  </history>
  <related>
-<!--   <reference type="document" href="doclocation" name="docname" /> -->
  </related>
 </meta>
 </riscos-prm>

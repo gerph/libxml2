@@ -1,15 +1,4 @@
-# RISC OS CI build through JFPatch as a service.
-#
-# To reuse this configuration with your own repository:
-#
-#   - Create a .robuild.yaml to describe what should be built on RISC OS.
-#       - `jobs.build.script` should be a list of commands to run on RISC OS
-#       - `jobs.build.artifacts.path` should be the directory to zip.
-#   - Create a VersionNum file if you wish to use the automated versioning
-#     in the same style as the RISC OS sources. [optional]
-#   - Update the 3rd step ('give the archive a versioned name') to give a
-#     suitable name for the archive.
-#   - Update the artifacts path to include the same names.
+# RISC OS CI build of the libxml2 library.
 #
 
 
@@ -20,15 +9,10 @@ cross-compile:
   script:
     - |
       cd RISCOS
-      riscos-amu -f MakefileLib,fe1 export
-      riscos-amu -f MakefileTools,fe1 TARGET=xmllint
-      riscos-amu -f MakefileTools,fe1 TARGET=xmlcatalog
-      mkdir -p ../Release
-      cp aif32/xmlcatalog,ff8 ../Release/xmlcatalog,ff8
-      cp aif32/xmllint,ff8    ../Release/xmllint,ff8
-      cd ../Release
-      zip -9r ../archive.zip *
-      cd ..
+      ./build-release.sh
+      cd Release
+      zip -9r ../../archive.zip *
+      cd ../..
 
     - |
       version=$(sed '/define LIBXML_DOTTED_VERSION/ ! d ; s/.*LIBXML_DOTTED_VERSION *"\(.*\)"/\1/' RISCOS/include/libxml/h/xmlversion)

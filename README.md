@@ -52,7 +52,7 @@ On non-RISC OS systems:
 - Update the `MakefileLib,fe1` to add any extra files that need building or exporting
 - Build everything, from clean.
     - `cd RISCOS`
-    - `./build-all.sh --clean`
+    - `./build-binaries.sh --clean`
 - Fix any breakages caused by conflicts in the merge, and repeat.
 - Add new files which are linked by the build process
     - `git add c/* h/* include/libxml/h/*`

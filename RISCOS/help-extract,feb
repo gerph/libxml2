@@ -1,0 +1,7 @@
+| Script to get help from the built tools
+cdir Output
+xmllint 2> Output.xmllint-help
+xmllint --version 2> Output.xmllint-version
+xmlcatalog > Output.xmlcatalog-help
+set Sys$ReturnCode 0
+
