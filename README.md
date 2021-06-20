@@ -33,8 +33,8 @@ On non-RISC OS systems:
     - `git checkout vendor`
 - Create a new branch in the form `vendor-<X>.<Y>.<Z>`.
     - `git checkout -b vendor-2.9.12`
-- Run the `copy-base.sh <directory>` to update the sources to the this version.
-    - `./copy-bash.sh ~/external/libxml2`
+- Run the `copy-libxml2.sh <directory>` to update the sources to the this version.
+    - `./copy-libxml2.sh ~/external/libxml2`
 - Add any extra files that have been created and commit the changes.
     - `git add *.c *.h include/libxml/*.h`
     - `git commit -m "Import of version 2.9.12"`
@@ -48,7 +48,7 @@ On non-RISC OS systems:
 - Merge in the vendor branch.
     - `git merge vendor-2.9.12`
 - Link any new files into the RISC OS file structures.
-    - `./link-original.sh`
+    - `./link-upstream.sh`
 - Update the `MakefileLib,fe1` to add any extra files that need building or exporting
 - Build everything, from clean.
     - `cd RISCOS`
