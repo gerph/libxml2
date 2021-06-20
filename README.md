@@ -9,8 +9,8 @@ On non-RISC OS systems:
 
     cd RISCOS
     riscos-amu -f MakefileLib,fe1 export
-    riscos-amu -f MakefileTools,fe1 TARGET=xmlLint
-    riscos-amu -f MakefileTools,fe1 TARGET=xmlCatalog
+    riscos-amu -f MakefileTools,fe1 TARGET=xmllint
+    riscos-amu -f MakefileTools,fe1 TARGET=xmlcatalog
     riscos-amu -f MakefileTools,fe1 TARGET=testAutomata
     riscos-amu -f MakefileTools,fe1 TARGET=testC14N
     riscos-amu -f MakefileTools,fe1 TARGET=testHTML
@@ -19,6 +19,11 @@ On non-RISC OS systems:
     riscos-amu -f MakefileTools,fe1 TARGET=testSAX
     riscos-amu -f MakefileTools,fe1 TARGET=testURI
     riscos-amu -f MakefileTools,fe1 TARGET=testXPath
+
+or:
+
+    cd RISCOS
+    ./build-binaries.sh
 
 ## Updating to the latest upstream version
 

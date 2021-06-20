@@ -22,6 +22,8 @@ cp -R inst/docs "${RELEASE_DIR}/"
 cp -R "${LIB_DIR}/libxml" "${RELEASE_DIR}/Lib/libxml"
 
 # Obtain the help messages
+# The help messages can only be reported by running the tool, so we send it off to the build service
+# to run the tool and return the help messages so that we can put them in the right place.
 tmpdir="${TMPDIR:-/tmp}/ro-libxml2.$$"
 mkdir -p "$tmpdir"
 cp help-robuild.yaml "$tmpdir/.robuild.yaml"
