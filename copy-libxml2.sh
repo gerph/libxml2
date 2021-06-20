@@ -1,6 +1,6 @@
 #!/bin/bash
 ##
-# Copy the sources from a released libxml2 directory to the 'original' directory.
+# Copy the sources from a released libxml2 directory to the 'upstream' directory.
 #
 
 set -e
@@ -16,8 +16,8 @@ if [[ ! -f "${base_dir}/xmllint.c" ]] ; then
     exit 1
 fi
 
-rm original/*.c original/*.h original/include/libxml/*.h
-cp "${base_dir}"/*.c original/
-cp "${base_dir}"/*.h original/
-cp "${base_dir}"/include/libxml/*.h original/include/libxml/
-cp "${base_dir}"/COPYING original/
+rm upstream/*.c upstream/*.h upstream/include/libxml/*.h
+cp "${base_dir}"/*.c upstream/
+cp "${base_dir}"/*.h upstream/
+cp "${base_dir}"/include/libxml/*.h upstream/include/libxml/
+cp "${base_dir}"/COPYING upstream/
