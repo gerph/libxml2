@@ -1,4 +1,4 @@
-# RISC OS CI build of the libxml2 library.
+# RISC OS CI build of the libxml2 library and tools
 #
 
 
@@ -10,23 +10,46 @@ cross-compile:
     - |
       cd RISCOS
       ./build-release.sh
-      cd Release
-      zip -9r ../../archive.zip *
+      cd ..
+
+  artifacts:
+      paths:
+          - RISCOS
+      expire_in: 1 day
+
+  tags:
+    - riscos
+
+#### Build archive by making the zip in RISC OS format
+archive:
+  stage: archive
+  dependencies:
+    - cross-compile
+
+  script:
+    - |
+      cd RISCOS/Release
+      # Archive the release files in RISC OS format
+      pip install --user rozipinfo
+      python -m rozipfile --verbose --create ../../archive.zip *
+      echo RISC OS archive contents:
+      python -m rozipfile --list ../../archive.zip
       cd ../..
 
     - |
-      version=$(sed '/define LIBXML_DOTTED_VERSION/ ! d ; s/.*LIBXML_DOTTED_VERSION *"\(.*\)"/\1/' RISCOS/include/libxml/h/xmlversion)
+      # If we wanted to version it by the library version, we could use this
+      libxml_version=$(sed '/define LIBXML_DOTTED_VERSION/ ! d ; s/.*LIBXML_DOTTED_VERSION *"\(.*\)"/\1/' RISCOS/include/libxml/h/xmlversion)
+      # Except, I've been versioning the earlier versions with port version numbers.
+      # So let's use that.
+      version=$(sed '/MajorVersion / ! d ; s/.*MajorVersion *"\(.*\)"/\1/' RISCOS/VersionNum)
       version=$version-$(git rev-parse --short HEAD)
-      echo "This is version: $version"
+      echo "This is version: $version (of LibXML $libxml_version)"
       mv archive.zip LibXML2-$version.zip
 
   artifacts:
       when: always
       paths:
           - LibXML2-*.zip
-
-  tags:
-    - riscos
 
 
 #### Build with build service ####
@@ -48,9 +71,13 @@ cross-compile:
       ./riscos-build-online -i /tmp/source-archive.zip -a off -s ws://backend0.build.riscos.online:13254/ -t 1800 -o /tmp/built
 
     - |
-      version=$(sed '/define LIBXML_DOTTED_VERSION/ ! d ; s/.*LIBXML_DOTTED_VERSION *"\(.*\)"/\1/' RISCOS/include/libxml/h/xmlversion)
+      # If we wanted to version it by the library version, we could use this
+      libxml_version=$(sed '/define LIBXML_DOTTED_VERSION/ ! d ; s/.*LIBXML_DOTTED_VERSION *"\(.*\)"/\1/' RISCOS/include/libxml/h/xmlversion)
+      # Except, I've been versioning the earlier versions with port version numbers.
+      # So let's use that.
+      version=$(sed '/MajorVersion / ! d ; s/.*MajorVersion *"\(.*\)"/\1/' RISCOS/xsltproc/VersionNum)
       version=$version-$(git rev-parse --short HEAD)
-      echo "This is version: $version"
+      echo "This is version: $version (of LibXML $libxml_version)"
       if [ -f /tmp/built,a91 ] ; then
           cp /tmp/built,a91 "LibXML2-$version.zip"
       else
@@ -70,3 +97,4 @@ cross-compile:
 #### Stages to execute ####
 stages:
   - build
+  - archive
