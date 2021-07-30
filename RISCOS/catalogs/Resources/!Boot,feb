@@ -1,0 +1,10 @@
+IconSprites <Obey$Dir>.!Sprites
+If "<SGML$CatalogFiles>" = "" Then Set SGML$CatalogFiles <obey$Dir>.Catalogs.root/cat
+If "<XML$CatalogFiles>" = "" Then  Set XML$CatalogFiles  <obey$Dir>.Catalogs.root
+If "<XMLCatalog$Dir>" = "" Then    Set XMLCatalog$Dir    <obey$Dir>.Catalogs
+If "<Alias$@RunType_F80>" = "" Then SetMacro Alias$@RunType_F80 Error XML files need to be loaded into an editor or parser before they mean anything|M||
+If "<Alias$@RunType_F7F>" = "" Then SetMacro Alias$@RunType_F7F Error XML-DTD files need to be loaded into an editor or processed with an XML file before they mean anything|M
+If "<Alias$@RunType_F7E>" = "" Then SetMacro Alias$@RunType_F7E Error XSL files must be applied to an XML file, or loaded into a text editor|M
+Set File$Type_F80 XML
+Set File$Type_F7F XML-DTD
+Set File$Type_F7E XSL

@@ -18,7 +18,9 @@ mkdir -p "${RELEASE_DIR}/Tools/XML/Help"
 cp inst/xmllint,ff8 "${RELEASE_DIR}/Tools/XML/XMLLint,ff8"
 cp inst/xmlcatalog,ff8 "${RELEASE_DIR}/Tools/XML/XMLCatalog,ff8"
 cp ../upstream/COPYING "${RELEASE_DIR}/COPYING"
+cp README.md "${RELEASE_DIR}/README.md"
 cp -R inst/docs "${RELEASE_DIR}/"
+cp -R catalogs/Install/!Catalogs "${RELEASE_DIR}/!Catalogs"
 cp -R "${LIB_DIR}/libxml" "${RELEASE_DIR}/Lib/libxml"
 
 # Obtain the help messages

@@ -1,0 +1,7 @@
+| >!Catalogs.!Run
+|
+Unset SGML$CatalogFiles
+Unset XML$CatalogFiles
+Unset XMLCatalog$Dir
+Run <Obey$Dir>.!Boot
+Filer_OpenDir <XMLCatalog$Dir>

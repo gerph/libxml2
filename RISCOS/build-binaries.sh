@@ -31,3 +31,12 @@ for tool in xmllint \
             testSAX ; do
     riscos-amu -f MakefileTools,fe1 TARGET=$tool install INSTDIR=${instdir}
 done
+
+# Build the Catalogs resource
+cd catalogs
+if $clean ; then
+    riscos-amu -f Makefile,fe1 clean
+    rm -rf Install
+fi
+riscos-amu -f Makefile,fe1 install INSTDIR=Install
+cd ..

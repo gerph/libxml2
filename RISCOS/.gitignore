@@ -5,3 +5,6 @@ oz/
 o32/
 oz32/
 
+# Release directories
+Catalogs/Install
+Release
