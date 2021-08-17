@@ -500,19 +500,30 @@ double xmlXPathNINF;
 ATTRIBUTE_NO_SANITIZE("float-divide-by-zero")
 void
 xmlXPathInit(void) {
+#ifdef __riscos
+    /* On RISC OS 3.7 and earlier and RISC OS 5 and later, it appears that attempts to assign
+     * a NaN by using `xmlXPathNAN = 0.0 / zero` results in a crash.
+     * This does not happen on RISC OS 4.
+     *
+     * Consequently it is unsafe to use the assignment mechanism below to generate the values
+     * to assign from. Presumably it'll also be dangerous to calculate them elsewhere as well,
+     * but for the purposes of getting XPath to initialise, we'll merely assign these valid
+     * values.
+     */
+    unsigned long nan_value[] = {0x7ff80000, 0xe0000000};
+    unsigned long inf_value[] = {0x7ff00000, 0x00000000};
+    unsigned long ninf_value[] = {0xfff00000, 0x00000000};
+
+    memcpy(&xmlXPathNAN, (unsigned long *)nan_value, sizeof(xmlXPathNAN));
+    memcpy(&xmlXPathPINF, (unsigned long *)inf_value, sizeof(xmlXPathPINF));
+    memcpy(&xmlXPathNINF, (unsigned long *)ninf_value, sizeof(xmlXPathNINF));
+#else
     /* MSVC doesn't allow division by zero in constant expressions. */
     double zero = 0.0;
-
-#ifdef __riscos
-    /* Disable the FP signals here so that we can assign NaN */
-    void (*signal_handler)(int) = signal(SIGFPE, SIG_IGN);
-#endif
 
     xmlXPathNAN = 0.0 / zero;
     xmlXPathPINF = 1.0 / zero;
     xmlXPathNINF = -xmlXPathPINF;
-#ifdef __riscos
-    signal(SIGFPE, signal_handler);
 #endif
 }
 
