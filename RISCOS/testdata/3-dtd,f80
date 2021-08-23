@@ -1,0 +1,4 @@
+<!ELEMENT address-book (entry*)>
+<!ELEMENT entry (name, email)>
+<!ELEMENT name (#PCDATA)>
+<!ELEMENT email (#PCDATA)>

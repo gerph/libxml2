@@ -1,0 +1,17 @@
+| Run RISC OS xmllint to check it's working properly.
+
+echo *** Test binary runs
+/aif32.xmllint --version
+If "<Sys$ReturnCode>" <> "0" Then Error Failed at 'xmllint --version'
+
+echo *** Test simple XML well-formedness
+/aif32.xmllint testdata/1-simplexml
+If "<Sys$ReturnCode>" <> "0" Then Error Failed at 'xmllint testdata/1-simplexml'
+
+echo *** Test XHTML well-formedness
+/aif32.xmllint testdata/2-xhtml
+If "<Sys$ReturnCode>" <> "0" Then Error Failed at 'xmllint testdata/2-xhtml'
+
+echo *** Test simple DTD
+/aif32.xmllint --dtdvalid testdata/3-dtd testdata/3-address
+If "<Sys$ReturnCode>" <> "0" Then Error Failed at 'xmllint --dtdvalid testdata/3-dtd testdata/3-address'
