@@ -182,34 +182,43 @@ char *unixfilename(const char *src)
   printf("unixfilename('%s')",src);
 #endif
 
-  while ((c=*src++)!='\0')
+  if (strncmp(src, "http://", 7) == 0 ||
+      strncmp(src, "https://", 8) == 0 ||
+      strncmp(src, "file:", 5) == 0)
   {
-    if (c==' ')
-    {
-      first=1;
-      continue;
-    }
-
-    if (first)
-    {
-      strcpy(dest,"file:///");
-      dest+=strlen("file:///");
-      first=0;
-    }
-
-    if (c=='.')
-      c='/';
-    else if (c=='/')
-      c='.';
-    else if (IS_RESERVED(c) || c>=0x80)
-    {
-      *dest++='%';
-      *dest++="0123456789ABCDEF"[c/16];
-      c="0123456789ABCDEF"[c%16];
-    }
-    *dest++=c;
+    strcpy(dest, src);
   }
-  *dest='\0';
+  else
+  {
+    while ((c=*src++)!='\0')
+    {
+      if (c==' ')
+      {
+        first=1;
+        continue;
+      }
+
+      if (first)
+      {
+        strcpy(dest,"file:///");
+        dest+=strlen("file:///");
+        first=0;
+      }
+
+      if (c=='.')
+        c='/';
+      else if (c=='/')
+        c='.';
+      else if (IS_RESERVED(c) || c>=0x80)
+      {
+        *dest++='%';
+        *dest++="0123456789ABCDEF"[c/16];
+        c="0123456789ABCDEF"[c%16];
+      }
+      *dest++=c;
+    }
+    *dest='\0';
+  }
 #ifdef DEBUG
   printf(" = %s\n",unixbuffer);
 #endif

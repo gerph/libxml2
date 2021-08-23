@@ -729,6 +729,23 @@ xmlCheckFilename (const char *path)
     if (S_ISDIR(stat_buffer.st_mode))
         return 2;
 #endif
+#else
+#ifdef __riscos
+    {
+        FILE *fh;
+        path=(char const *)riscosfilename(path);
+        fh = fopen(path, "rb");
+        if (fh)
+        {
+            fclose(fh);
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+#endif
 #endif /* HAVE_STAT */
     return 1;
 }

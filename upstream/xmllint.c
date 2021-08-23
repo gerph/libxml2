@@ -3044,7 +3044,7 @@ static void parseAndPrintFile(char *filename, xmlParserCtxtPtr rectxt) {
 
 		if (output == NULL)
 #ifdef __riscos
-		    ctxt = NULL; /* This is not supported on RISC OS - FIXME: write to stdout ? */
+            ctxt = xmlSaveToFile(stdout, encoding, saveOpts);
 #else
 		    ctxt = xmlSaveToFd(1, encoding, saveOpts);
 #endif

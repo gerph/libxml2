@@ -10,6 +10,10 @@
 #ifndef __XML_XMLSAVE_H__
 #define __XML_XMLSAVE_H__
 
+#ifdef __riscos
+#include <stdio.h>
+#endif
+
 #include <libxml/xmlversion.h>
 #include <libxml/tree.h>
 #include <libxml/encoding.h>
@@ -41,10 +45,17 @@ typedef enum {
 typedef struct _xmlSaveCtxt xmlSaveCtxt;
 typedef xmlSaveCtxt *xmlSaveCtxtPtr;
 
+#ifdef __riscos
 XMLPUBFUN xmlSaveCtxtPtr XMLCALL
-		xmlSaveToFd		(int fd,
-					 const char *encoding,
-					 int options);
+        xmlSaveToFile   (FILE *fh,
+                     const char *encoding,
+                     int options);
+#else
+XMLPUBFUN xmlSaveCtxtPtr XMLCALL
+        xmlSaveToFd     (int fd,
+                     const char *encoding,
+                     int options);
+#endif
 XMLPUBFUN xmlSaveCtxtPtr XMLCALL
 		xmlSaveToFilename	(const char *filename,
 					 const char *encoding,

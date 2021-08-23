@@ -1734,6 +1734,34 @@ xhtmlNodeDumpOutput(xmlSaveCtxtPtr ctxt, xmlNodePtr cur) {
  *									*
  ************************************************************************/
 
+#ifdef __riscos
+/**
+ * xmlSaveToFile:
+ * @fh:  a FILE * pointer
+ * @encoding:  the encoding name to use or NULL
+ * @options:  a set of xmlSaveOptions
+ *
+ * Create a document saving context serializing to a file descriptor
+ * with the encoding and the options given.
+ *
+ * Returns a new serialization context or NULL in case of error.
+ */
+xmlSaveCtxtPtr
+xmlSaveToFile(FILE *fh, const char *encoding, int options)
+{
+    xmlSaveCtxtPtr ret;
+
+    ret = xmlNewSaveCtxt(encoding, options);
+    if (ret == NULL) return(NULL);
+    ret->buf = xmlOutputBufferCreateFile(fh, ret->handler);
+    if (ret->buf == NULL) {
+        xmlCharEncCloseFunc(ret->handler);
+    xmlFreeSaveCtxt(ret);
+    return(NULL);
+    }
+    return(ret);
+}
+#else
 /**
  * xmlSaveToFd:
  * @fd:  a file descriptor number
@@ -1755,11 +1783,13 @@ xmlSaveToFd(int fd, const char *encoding, int options)
     ret->buf = xmlOutputBufferCreateFd(fd, ret->handler);
     if (ret->buf == NULL) {
         xmlCharEncCloseFunc(ret->handler);
-	xmlFreeSaveCtxt(ret);
-	return(NULL);
+    xmlFreeSaveCtxt(ret);
+    return(NULL);
     }
     return(ret);
 }
+#endif
+
 
 /**
  * xmlSaveToFilename:
