@@ -4,7 +4,7 @@
 
   This document was created with the HTML stylesheet updated 19 Sep 2020.
 -->
-<head><meta charset="utf-8"/><title>Library tools : XML tools</title></head><body bgcolor="white" text="black" link="blue" alink="red" vlink="darkblue"><hr/><h1>XML tools</h1><hr/><dl><dt><h2>Contents</h2></dt><dd><ul><li><a href="#section_introduction_and_overview">Introduction and Overview</a></li><li><a href="#section_system_variables">System variables</a><ul><li><a href="#sysvar_sgml_catalogfiles">SGML$CatalogFiles</a></li><li><a href="#sysvar_xml_catalogfiles">XML$CatalogFiles</a></li></ul></li><li><a href="#section_commands">*Commands</a><ul><li><a href="#command_xmlcatalog">*XMLCatalog</a></li><li><a href="#command_xmllint">*XMLLint</a></li></ul></li></ul></dd></dl><hr/><dl><dt><h2><a name="section_introduction_and_overview">Introduction and Overview</a></h2></dt><dd><dl><dd><p>The XML tools are ports of the LibXML2, LibXSLT and XSLDBG applications.
+<head><meta charset="utf-8"/><title>Library tools : XML tools</title></head><body bgcolor="white" text="black" link="blue" alink="red" vlink="darkblue"><hr/><h1>XML tools</h1><hr/><dl><dt><h2>Contents</h2></dt><dd><ul><li><a href="#section_introduction_and_overview">Introduction and Overview</a></li><li><a href="#section_system_variables">System variables</a><ul><li><a href="#sysvar_sgml_catalogfiles">SGML$CatalogFiles</a></li><li><a href="#sysvar_xml_catalogfiles">XML$CatalogFiles</a></li><li><a href="#sysvar_xml_catalogdebug">XML$CatalogDebug</a></li><li><a href="#sysvar_xmllint_indent">XMLLint$Indent</a></li></ul></li><li><a href="#section_commands">*Commands</a><ul><li><a href="#command_xmlcatalog">*XMLCatalog</a></li><li><a href="#command_xmllint">*XMLLint</a></li></ul></li></ul></dd></dl><hr/><dl><dt><h2><a name="section_introduction_and_overview">Introduction and Overview</a></h2></dt><dd><dl><dd><p>The XML tools are ports of the LibXML2, LibXSLT and XSLDBG applications.
 These are libraries originating on unix to manipulate and process XML and
 XSLT documents. These ports were created by Justin Fletcher.
 </p></dd></dl></dd><dd><dl><dd><p>Filenames specified with the XML tools, unless otherwise stated, are
@@ -20,45 +20,61 @@ favour of XML catalogs.</p>
 <p>This variable declares where XML catalog files live. The value of the
 variable itself is a space-separated list of native filenames of XML
 catalog files describing catalog entries.</p>
+</dd><dt><h5>Related system variables</h5></dt><dd><a href="#sysvar_sgml_catalogfiles">SGML$CatalogFiles</a></dd></dd></dl></dd><dd><dl><dd><hr/><h2 align="right"><a name="sysvar_xml_catalogdebug">XML$CatalogDebug</a></h2><dd>Enable debugging of LibXML2 catalog processing</dd><dt><h5>Use</h5></dt><dd>
+<p>This variable controls whether the LibXML2 produces debug output.
+    The output will be written to the standard output stream. The variable
+    must be set to a non-zero value to enable debugging.</p>
+</dd><dt><h5>Related system variables</h5></dt><dd><a href="#sysvar_sgml_catalogfiles">SGML$CatalogFiles</a>, <a href="#sysvar_xml_catalogfiles">XML$CatalogFiles</a></dd></dd></dl></dd><dd><dl><dd><hr/><h2 align="right"><a name="sysvar_xmllint_indent">XMLLint$Indent</a></h2><dd>Sets the indent used by the XMLLint tool</dd><dt><h5>Use</h5></dt><dd>
+    <p>This variable changes the default indentation used by the XMLLint tool.
+        The indentation level is specified as the characters to output when
+        indenting the output from XMLLint. If unset, the indentation defaults
+        to two spaces.</p>
 </dd><dt><h5>Related system variables</h5></dt><dd><a href="#sysvar_sgml_catalogfiles">SGML$CatalogFiles</a></dd></dd></dl></dd></dl><hr/><dl><dt><h2><a name="section_commands">*Commands</a></h2></dt><dd><dl><dd><hr/><h2 align="right"><a name="command_xmlcatalog">*XMLCatalog</a></h2><dd>Command line tool to parse and manipulate XML or SGML catalog files.</dd><dt><h5>Syntax</h5></dt><dd><code>*XMLCatalog
- [-shell | -create | -add 
+ [-sgml | -shell | -create | -add 
    <i>&lt;type&gt;</i>
    <i>&lt;original&gt;</i>
    <i>&lt;replacement&gt;</i>
    | -del 
    <i>&lt;values&gt;</i>
-   | -noout | -verbose]
+   | -noout | -verbose | -no-super-update]
  [<i>&lt;catalog-file&gt;</i>]
  [<i>&lt;entities&gt;</i>]
 </code></dd><dt><h5>Parameters</h5></dt><dd><table summary="Command parameters" border="0"><tr><td valign="top"><code>
+            -sgml </code></td><td valign="top">-</td><td valign="top">
+ Modify the SGML super catalogs when --add and --del are used</td></tr><tr><td valign="top"><code>
             -shell </code></td><td valign="top">-</td><td valign="top">
  Run a shell allowing interactive queries on catalog file</td></tr><tr><td valign="top"><code>
             -create </code></td><td valign="top">-</td><td valign="top">
  Create a new XML catalog. Outputs to stdout, ignoring
  <i>&lt;filename&gt;</i> unless -noout is
  used, in which case it creates a new catalog file
- <i>&lt;filename&gt;</i>.
-</td></tr><tr><td valign="top"><code>
+ <i>&lt;filename&gt;</i>.</td></tr><tr><td valign="top"><code>
             -add </code></td><td valign="top">-</td><td valign="top">
  Add an entry to catalog file <i>&lt;filename&gt;</i>.
  <ul>
   <li>
+   <p>
     <i>&lt;type&gt;</i> indicates the type of entry.
     Possible types are 'public', 'system', 'rewriteSystem', 'delegatePublic'
     and 'delegateSystem'.
-   </li>
+   </p>
+  </li>
   <li>
+   <p>
     <i>&lt;orig&gt;</i> is the original reference to be
     replaced
-   </li>
+   </p>
+  </li>
   <li>
+   <p>
     <i>&lt;replace&gt;</i> is the URI of the replacement 
     entity to be used. The -add option will not overwrite
     <i>&lt;filename&gt;</i>, outputing to stdout, unless
     -noout is used. This switch will always take three
     parameters even if some of the XML catalog constructs will have only a
     single argument.
-   </li>
+   </p>
+  </li>
  </ul>
  
  <p>
@@ -66,20 +82,18 @@ catalog files describing catalog entries.</p>
   only a single argument, a <i>&lt;filename&gt;</i>, is used.
   This is used to add the name of a catalog file to an SGML supercatalog, a
   file that contains references to other included SGML catalog files.
- </p>
-</td></tr><tr><td valign="top"><code>
+ </p></td></tr><tr><td valign="top"><code>
             -del </code></td><td valign="top">-</td><td valign="top">
  Remove entries from the catalog file <i>&lt;filename&gt;</i>
- matching <i>&lt;'values'&gt;</i>. This switch will not
+ matching <i>&lt;values&gt;</i>. This switch will not
  overwrite <i>&lt;filename&gt;</i>, outputing to
- stdout, unless -noout is used.
-</td></tr><tr><td valign="top"><code>
+ stdout, unless -noout is used.</td></tr><tr><td valign="top"><code>
             -noout </code></td><td valign="top">-</td><td valign="top">
- Save output to the named file rather than outputing to stdout.
-</td></tr><tr><td valign="top"><code>
+ Save output to the named catalogs rather than outputing to stdout.</td></tr><tr><td valign="top"><code>
+            -no-super-update </code></td><td valign="top">-</td><td valign="top">
+ Do not update SGML super catalogs</td></tr><tr><td valign="top"><code>
             -verbose </code></td><td valign="top">-</td><td valign="top">
- output debugging information.
-</td></tr></table></dd><dt><h5>Use</h5></dt><dd>
+ output debugging information.</td></tr></table></dd><dt><h5>Use</h5></dt><dd>
 <p>xmlcatalog is a command line application allowing users to monitor and
 manipulate XML and SGML catalogs. It is included in libxml2.</p>
 
@@ -123,93 +137,256 @@ xmlcatalog is executing</td></tr>
 </p>
 
 </dd><dt><h5>Related * commands</h5></dt><dd><a href="#command_xmllint">*XMLLint</a></dd></dd></dl></dd><dd><dl><dd><hr/><h2 align="right"><a name="command_xmllint">*XMLLint</a></h2><dd>Parse the XML files and output the result of the parsing</dd><dt><h5>Syntax</h5></dt><dd><code>*XMLLint
+
  [-version]
  [-debug]
  [-shell]
  [-debugent]
  [-copy]
  [-recover]
+ [-huge]
  [-noent]
+ [-noenc]
  [-noout]
+ [-path<i>&lt;paths&gt;</i>]
+ [-load-trace]
+ [-nonet]
+ [-nocompact]
  [-htmlout]
  [-nowrap]
  [-valid]
  [-postvalid]
  [-dtdvalid<i>&lt;URL&gt;</i>]
+ [-dtdvalidfpi<i>&lt;FPI&gt;</i>]
+ [-quiet]
  [-timing]
  [-output<i>&lt;file&gt;</i>]
  [-repeat]
  [-insert]
- [-sgml]
  [-html]
+ [-xmlout]
+ [-nodefdtd]
  [-push]
- [-nowarnings]
+ [-pushsmall]
+ [-maxmem<i>&lt;nbbytes&gt;</i>]
+ [-nowarning]
  [-noblanks]
+ [-nocdata]
  [-format]
- [-testIO]
  [-encode<i>&lt;encoding&gt;</i>]
+ [-dropdtd]
+ [-pretty<i>&lt;style&gt;</i>]
+ [-c14n]
+ [-c14n11]
+ [-exc]
+ [-nsclean]
+ [-testIO]
  [-catalogs]
  [-nocatalogs]
  [-auto]
  [-xinclude]
+ [-noxincludenode]
+ [-nofixup-base-uris]
  [-loaddtd]
  [-dtdattr]
- [-dropdtd]
  [-throwback]
+ [-stream]
+ [-walker]
+ [-pattern<i>&lt;pattern&gt;</i>]
+ [-chkregister]
+ [-relaxng<i>&lt;schema&gt;</i>]
+ [-schema<i>&lt;schema&gt;</i>]
+ [-sax1]
+ [-sax]
+ [-oldxml10]
+ [-xpath<i>&lt;expr&gt;</i>]
+
 </code></dd><dt><h5>Parameters</h5></dt><dd><table summary="Command parameters" border="0"><tr><td valign="top"><code>
-            -version </code></td><td valign="top">-</td><td valign="top">display the version of the XML library used</td></tr><tr><td valign="top"><code>
-            -debug </code></td><td valign="top">-</td><td valign="top">dump a debug tree of the in-memory document</td></tr><tr><td valign="top"><code>
-            -shell </code></td><td valign="top">-</td><td valign="top">run a navigating shell</td></tr><tr><td valign="top"><code>
-            -debugent </code></td><td valign="top">-</td><td valign="top">debug the entities defined in the document</td></tr><tr><td valign="top"><code>
-            -copy </code></td><td valign="top">-</td><td valign="top">used to test the internal copy implementation</td></tr><tr><td valign="top"><code>
-            -recover </code></td><td valign="top">-</td><td valign="top">output what was parsable on broken XML documents</td></tr><tr><td valign="top"><code>
-            -noent </code></td><td valign="top">-</td><td valign="top">substitute entity references by their value</td></tr><tr><td valign="top"><code>
-            -noout </code></td><td valign="top">-</td><td valign="top">don't output the result tree</td></tr><tr><td valign="top"><code>
-            -htmlout </code></td><td valign="top">-</td><td valign="top">output results as HTML</td></tr><tr><td valign="top"><code>
-            -nowrap </code></td><td valign="top">-</td><td valign="top">do not put HTML doc wrapper</td></tr><tr><td valign="top"><code>
-            -valid </code></td><td valign="top">-</td><td valign="top">validate the document in addition to std well-formed check</td></tr><tr><td valign="top"><code>
-            -postvalid </code></td><td valign="top">-</td><td valign="top">do a posteriori validation, i.e after parsing</td></tr><tr><td valign="top"><code>
-            -dtdvalid <i>&lt;URL&gt;</i></code></td><td valign="top">-</td><td valign="top">do a posteriori validation against a given DTD</td></tr><tr><td valign="top"><code>
-            -timing </code></td><td valign="top">-</td><td valign="top">print some timings</td></tr><tr><td valign="top"><code>
-            -output <i>&lt;file&gt;</i></code></td><td valign="top">-</td><td valign="top">save output to a given file</td></tr><tr><td valign="top"><code>
-            -repeat </code></td><td valign="top">-</td><td valign="top">repeat 100 times, for timing or profiling</td></tr><tr><td valign="top"><code>
-            -insert </code></td><td valign="top">-</td><td valign="top">ad-hoc test for valid insertions</td></tr><tr><td valign="top"><code>
-            -sgml </code></td><td valign="top">-</td><td valign="top">use the DocBook SGML parser</td></tr><tr><td valign="top"><code>
-            -html </code></td><td valign="top">-</td><td valign="top">use the HTML parser</td></tr><tr><td valign="top"><code>
-            -push </code></td><td valign="top">-</td><td valign="top">use the push mode of the parser</td></tr><tr><td valign="top"><code>
-            -nowarning </code></td><td valign="top">-</td><td valign="top">do not emit warnings from parser/validator</td></tr><tr><td valign="top"><code>
-            -noblanks </code></td><td valign="top">-</td><td valign="top">drop (ignorable?) blanks spaces</td></tr><tr><td valign="top"><code>
-            -format </code></td><td valign="top">-</td><td valign="top">reformat/reindent the input</td></tr><tr><td valign="top"><code>
-            -testIO </code></td><td valign="top">-</td><td valign="top">test user I/O support</td></tr><tr><td valign="top"><code>
-            -encode <i>&lt;encoding&gt;</i></code></td><td valign="top">-</td><td valign="top">output in the given encoding</td></tr><tr><td valign="top"><code>
-            -catalogs </code></td><td valign="top">-</td><td valign="top">use SGML catalogs from SGML$CatalogFiles</td></tr><tr><td valign="top"><code>
-            -nocatalog </code></td><td valign="top">-</td><td valign="top">deactivate all catalogs</td></tr><tr><td valign="top"><code>
-            -auto </code></td><td valign="top">-</td><td valign="top">generate a small doc on the fly</td></tr><tr><td valign="top"><code>
-            -xinclude </code></td><td valign="top">-</td><td valign="top">do XInclude processing</td></tr><tr><td valign="top"><code>
-            -loaddtd </code></td><td valign="top">-</td><td valign="top">fetch external DTD</td></tr><tr><td valign="top"><code>
-            -dtdattr </code></td><td valign="top">-</td><td valign="top">loaddtd and populate the tree with inherited attributes</td></tr><tr><td valign="top"><code>
-            -dropdtd </code></td><td valign="top">-</td><td valign="top">remove DOCTYPE declaration from input documents</td></tr><tr><td valign="top"><code>
-            -throwback </code></td><td valign="top">-</td><td valign="top">provide feedback to external tasks</td></tr></table></dd><dt><h5>Use</h5></dt><dd>
+            -auto </code></td><td valign="top">-</td><td valign="top">Generate a small document for testing purposes.</td></tr><tr><td valign="top"><code>
+            -catalogs </code></td><td valign="top">-</td><td valign="top">Use the SGML catalog(s) from <code>SGML$CatalogFiles</code>. Otherwise XML
+       catalogs starting from <code>XML$CatalogFiles</code> are used by default.</td></tr><tr><td valign="top"><code>
+            -chkregister </code></td><td valign="top">-</td><td valign="top">Turn on node registration. Useful for developers testing libxml
+       node tracking code.</td></tr><tr><td valign="top"><code>
+            -compress </code></td><td valign="top">-</td><td valign="top">Turn on gzip(1) compression of output.</td></tr><tr><td valign="top"><code>
+            -copy </code></td><td valign="top">-</td><td valign="top">Test the internal copy implementation.</td></tr><tr><td valign="top"><code>
+            -c14n </code></td><td valign="top">-</td><td valign="top">Use the W3C XML Canonicalisation (C14N) to serialize the result of
+       parsing to stdout. It keeps comments in the result.</td></tr><tr><td valign="top"><code>
+            -c14n11 </code></td><td valign="top">-</td><td valign="top">Save in W3C canonical format v1.1 (with comments).</td></tr><tr><td valign="top"><code>
+            -dtdvalid <i>&lt;URL&gt;</i></code></td><td valign="top">-</td><td valign="top">Use the DTD specified by an URL for validation.</td></tr><tr><td valign="top"><code>
+            -dtdvalidfpi <i>&lt;FPI&gt;</i></code></td><td valign="top">-</td><td valign="top">Use the DTD specified by a Formal Public Identifier FPI for
+       validation, note that this will require a catalog exporting that
+       Formal Public Identifier to work.</td></tr><tr><td valign="top"><code>
+            -debug </code></td><td valign="top">-</td><td valign="top">Parse a file and output an annotated tree of the in-memory version
+       of the document.</td></tr><tr><td valign="top"><code>
+            -debugent </code></td><td valign="top">-</td><td valign="top">Debug the entities defined in the document.</td></tr><tr><td valign="top"><code>
+            -dropdtd </code></td><td valign="top">-</td><td valign="top">Remove DTD from output.</td></tr><tr><td valign="top"><code>
+            -dtdattr </code></td><td valign="top">-</td><td valign="top">Fetch external DTD and populate the tree with inherited attributes.</td></tr><tr><td valign="top"><code>
+            -encode <i>&lt;encoding&gt;</i></code></td><td valign="top">-</td><td valign="top">Output in the given encoding. Note that this works for full
+       document not fragments or result from XPath queries.</td></tr><tr><td valign="top"><code>
+            -exc-c14n </code></td><td valign="top">-</td><td valign="top">save in W3C exclusive canonical format (with comments)</td></tr><tr><td valign="top"><code>
+            -format </code></td><td valign="top">-</td><td valign="top">Reformat and reindent the output. The XMLLINT_INDENT environment
+       variable controls the indentation. The default value is two spaces
+       " ").
+       <font color="#DD0000"><strong>FIXME:</strong>What variable?</font>
+   </td></tr><tr><td valign="top"><code>
+            -help </code></td><td valign="top">-</td><td valign="top">Print out a short usage summary for xmllint.</td></tr><tr><td valign="top"><code>
+            -html </code></td><td valign="top">-</td><td valign="top">Use the HTML parser.</td></tr><tr><td valign="top"><code>
+            -htmlout </code></td><td valign="top">-</td><td valign="top">Output results as an HTML file. This causes xmllint to output the
+       necessary HTML tags surrounding the result tree output so the
+       results can be displayed/viewed in a browser.</td></tr><tr><td valign="top"><code>
+            -huge </code></td><td valign="top">-</td><td valign="top">Remove any internal arbitrary parser limits.</td></tr><tr><td valign="top"><code>
+            -insert </code></td><td valign="top">-</td><td valign="top">Test for valid insertions.</td></tr><tr><td valign="top"><code>
+            -loaddtd </code></td><td valign="top">-</td><td valign="top">Fetch an external DTD.</td></tr><tr><td valign="top"><code>
+            -load-trace </code></td><td valign="top">-</td><td valign="top">Display all the documents loaded during the processing to stderr.</td></tr><tr><td valign="top"><code>
+            -maxmem <i>&lt;nnbytes&gt;</i></code></td><td valign="top">-</td><td valign="top">Test the parser memory support.  'nnbytes' is the maximum number of
+       bytes the library is allowed to allocate. This can also be used to
+       make sure batch processing of XML files will not exhaust the
+       virtual memory of the server running them.</td></tr><tr><td valign="top"><code>
+            -memory </code></td><td valign="top">-</td><td valign="top">Parse from memory.</td></tr><tr><td valign="top"><code>
+            -noblanks </code></td><td valign="top">-</td><td valign="top">Drop ignorable blank spaces.</td></tr><tr><td valign="top"><code>
+            -nocatalogs </code></td><td valign="top">-</td><td valign="top">Do not use any catalogs.</td></tr><tr><td valign="top"><code>
+            -nocdata </code></td><td valign="top">-</td><td valign="top">Substitute CDATA section by equivalent text nodes.</td></tr><tr><td valign="top"><code>
+            -nocompact </code></td><td valign="top">-</td><td valign="top">Do not generate compact text nodes.</td></tr><tr><td valign="top"><code>
+            -nodefdtd </code></td><td valign="top">-</td><td valign="top">Do not default HTML doctype.</td></tr><tr><td valign="top"><code>
+            -noenc </code></td><td valign="top">-</td><td valign="top">Ignore any encoding specified inside the document.</td></tr><tr><td valign="top"><code>
+            -noent </code></td><td valign="top">-</td><td valign="top">Substitute entity values for entity references. By default, xmllint
+       leaves entity references in place.</td></tr><tr><td valign="top"><code>
+            -nofixup-base-uris </code></td><td valign="top">-</td><td valign="top">Do not fixup xml:base URIs.</td></tr><tr><td valign="top"><code>
+            -nonet </code></td><td valign="top">-</td><td valign="top">Do not use the Internet to fetch DTDs or entities.</td></tr><tr><td valign="top"><code>
+            -noout </code></td><td valign="top">-</td><td valign="top">Suppress output. By default, xmllint outputs the result tree.</td></tr><tr><td valign="top"><code>
+            -nowarning </code></td><td valign="top">-</td><td valign="top">Do not emit warnings from the parser and/or validator.</td></tr><tr><td valign="top"><code>
+            -nowrap </code></td><td valign="top">-</td><td valign="top">Do not output HTML doc wrapper.</td></tr><tr><td valign="top"><code>
+            -noxincludenode </code></td><td valign="top">-</td><td valign="top">Do XInclude processing but do not generate XInclude start and end
+       nodes.</td></tr><tr><td valign="top"><code>
+            -nsclean </code></td><td valign="top">-</td><td valign="top">Remove redundant namespace declarations.</td></tr><tr><td valign="top"><code>
+            -oldxml10 </code></td><td valign="top">-</td><td valign="top">Use XML-1.0 parsing rules before the 5th edition.</td></tr><tr><td valign="top"><code>
+            -output <i>&lt;file&gt;</i></code></td><td valign="top">-</td><td valign="top">Define a file path where xmllint will save the result of parsing.
+       Usually the programs build a tree and save it on stdout, with this
+       option the result XML instance will be saved onto a file.</td></tr><tr><td valign="top"><code>
+            -path <i>&lt;paths&gt;</i></code></td><td valign="top">-</td><td valign="top">
+       Use the (space- or colon-separated) list of filesystem paths
+       specified by 'paths' to load DTDs or entities. Enclose
+       space-separated lists by quotation marks.</td></tr><tr><td valign="top"><code>
+            -pattern <i>&lt;pattern&gt;</i></code></td><td valign="top">-</td><td valign="top">Used to exercise the pattern recognition engine, which can be used
+       with the reader interface to the parser. It allows to select some
+       nodes in the document based on an XPath (subset) expression. Used
+       for debugging.</td></tr><tr><td valign="top"><code>
+            -postvalid </code></td><td valign="top">-</td><td valign="top">Validate after parsing has completed.</td></tr><tr><td valign="top"><code>
+            -pretty <i>&lt;style&gt;</i></code></td><td valign="top">-</td><td valign="top">Pretty-print in a particular style<br/>
+                     0 : Do not pretty print.<br/>
+                     1 : Format the XML content, as --format.<br/>
+                     2 : Add whitespace inside tags, preserving content.</td></tr><tr><td valign="top"><code>
+            -push </code></td><td valign="top">-</td><td valign="top">Use the push mode of the parser.</td></tr><tr><td valign="top"><code>
+            -pushsmall </code></td><td valign="top">-</td><td valign="top">Use the push mode of the parser using tiny increments.</td></tr><tr><td valign="top"><code>
+            -quiet </code></td><td valign="top">-</td><td valign="top">Be quiet when succeeded.</td></tr><tr><td valign="top"><code>
+            -recover </code></td><td valign="top">-</td><td valign="top">Output any parsable portions of an invalid document.</td></tr><tr><td valign="top"><code>
+            -relaxng <i>&lt;schema&gt;</i></code></td><td valign="top">-</td><td valign="top">Use RelaxNG file named 'schema' for validation.</td></tr><tr><td valign="top"><code>
+            -repeat </code></td><td valign="top">-</td><td valign="top">Repeat 100 times, for timing or profiling.</td></tr><tr><td valign="top"><code>
+            -sax </code></td><td valign="top">-</td><td valign="top">Do not build a tree but work just at the SAX level.</td></tr><tr><td valign="top"><code>
+            -sax1 </code></td><td valign="top">-</td><td valign="top">Use the old SAX1 interfaces for processing.</td></tr><tr><td valign="top"><code>
+            -schema <i>&lt;schema&gt;</i></code></td><td valign="top">-</td><td valign="top">Use a W3C XML Schema file named 'schema' for validation.</td></tr><tr><td valign="top"><code>
+            -shell </code></td><td valign="top">-</td><td valign="top">Run a navigating shell. Details on available commands in shell mode
+       are below.</td></tr><tr><td valign="top"><code>
+            -xpath <i>&lt;expr&gt;</i></code></td><td valign="top">-</td><td valign="top">
+       Run an XPath expression given as argument and print the result. In
+       case of a nodeset result, each node in the node set is serialized
+       in full in the output. In case of an empty node set the "XPath set
+       is empty" result will be shown and an error exit code will be
+       returned.</td></tr><tr><td valign="top"><code>
+            -stream </code></td><td valign="top">-</td><td valign="top">Use streaming API - useful when used in combination with --relaxng
+       or --valid options for validation of files that are too large to be
+       held in memory.</td></tr><tr><td valign="top"><code>
+            -testIO </code></td><td valign="top">-</td><td valign="top">Test user input/output support.</td></tr><tr><td valign="top"><code>
+            -throwback </code></td><td valign="top">-</td><td valign="top">Provide feedback to external tasks (RISC OS only).</td></tr><tr><td valign="top"><code>
+            -timing </code></td><td valign="top">-</td><td valign="top">Output information about the time it takes xmllint to perform the
+       various steps.</td></tr><tr><td valign="top"><code>
+            -valid </code></td><td valign="top">-</td><td valign="top">Determine if the document is a valid instance of the included
+       Document Type Definition (DTD). A DTD to be validated against also
+       can be specified at the command line using the --dtdvalid option.
+       By default, xmllint also checks to determine if the document is
+       well-formed.</td></tr><tr><td valign="top"><code>
+            -version </code></td><td valign="top">-</td><td valign="top">Display the version of libxml used.</td></tr><tr><td valign="top"><code>
+            -walker </code></td><td valign="top">-</td><td valign="top">Test the walker module, which is a reader interface but for a
+       document tree, instead of using the reader API on an unparsed
+       document it works on an existing in-memory tree. Used for
+       debugging.</td></tr><tr><td valign="top"><code>
+            -xinclude </code></td><td valign="top">-</td><td valign="top">Do XInclude processing.</td></tr><tr><td valign="top"><code>
+            -xmlout </code></td><td valign="top">-</td><td valign="top">Used in conjunction with --html. Usually when HTML is parsed the
+       document is saved with the HTML serializer. But with this option
+       the resulting document is saved with the XML serializer. This is
+       primarily used to generate XHTML from HTML input.</td></tr></table></dd><dt><h5>Use</h5></dt><dd>
 <p>xmllint is a command line application allowing users to process XML. It
-is included in libxml2.</p>
+is included in libxml2 distributions. The files specified on the command line are
+in URL format - using '/' as a directory separator, and '.' as an extension.
+</p>
+
+<h5><b><a name="category_xmllint_shell">XMLLint shell</a></b></h5>
+<p>The tool includes a 'shell' - a line based command system which can be used
+    to navigate through an XML document. The commands which can be used in the
+    shell are:</p>
+
+<p>
+<table summary="Opaque table of values" border="0"><tr><th align="right" valign="bottom">Command</th><th align="left" valign="bottom">Meaning</th></tr>
+    <tr><td valign="top" align="right">base</td><td valign="top" align="left">Display XML base of the node.</td></tr>
+    <tr><td valign="top" align="right">bye</td><td valign="top" align="left">Leave the shell.</td></tr>
+    <tr><td valign="top" align="right">cat NODE</td><td valign="top" align="left">Display the given node or the current one.</td></tr>
+    <tr><td valign="top" align="right">cd PATH</td><td valign="top" align="left">Change the current node to the given path (if unique) or root if no argument is given.</td></tr>
+    <tr><td valign="top" align="right">dir PATH</td><td valign="top" align="left">Dumps information about the node (namespace, attributes, content).</td></tr>
+    <tr><td valign="top" align="right">du PATH</td><td valign="top" align="left">Show the structure of the subtree under the given path or the current node.</td></tr>
+    <tr><td valign="top" align="right">exit</td><td valign="top" align="left">Leave the shell.</td></tr>
+    <tr><td valign="top" align="right">help</td><td valign="top" align="left">Show this help.</td></tr>
+    <tr><td valign="top" align="right">free</td><td valign="top" align="left">Display memory usage.</td></tr>
+    <tr><td valign="top" align="right">load FILENAME</td><td valign="top" align="left">Load a new document with the given filename.</td></tr>
+    <tr><td valign="top" align="right">ls PATH</td><td valign="top" align="left">List contents of the given path or the current directory.</td></tr>
+    <tr><td valign="top" align="right">pwd</td><td valign="top" align="left">Display the path to the current node.</td></tr>
+    <tr><td valign="top" align="right">quit</td><td valign="top" align="left">Leave the shell.</td></tr>
+    <tr><td valign="top" align="right">save FILENAME</td><td valign="top" align="left">Save the current document to the given filename or to the original name.</td></tr>
+    <tr><td valign="top" align="right">validate</td><td valign="top" align="left">Check the document for errors.</td></tr>
+    <tr><td valign="top" align="right">write FILENAME</td><td valign="top" align="left">Write the current node to the given filename.</td></tr>
+</table>
+</p>
+
+
+
+<h5><b><a name="category_xmllint_return_codes">XMLLint return codes</a></b></h5>
+    <p>xmllint return codes provide information that can be used to determine is status.</p>
+
+<p>
+<table summary="Opaque table of values" border="0"><tr><th align="right" valign="bottom">Value</th><th align="left" valign="bottom">Meaning</th></tr>
+<tr><td valign="top" align="right">0</td><td valign="top" align="left">No error</td></tr>
+<tr><td valign="top" align="right">1</td><td valign="top" align="left">Unclassified</td></tr>
+<tr><td valign="top" align="right">2</td><td valign="top" align="left">Error in DTD</td></tr>
+<tr><td valign="top" align="right">3</td><td valign="top" align="left">Validation error</td></tr>
+<tr><td valign="top" align="right">4</td><td valign="top" align="left">Validation error</td></tr>
+<tr><td valign="top" align="right">5</td><td valign="top" align="left">Error in schema compilation</td></tr>
+<tr><td valign="top" align="right">6</td><td valign="top" align="left">Error writing output</td></tr>
+<tr><td valign="top" align="right">7</td><td valign="top" align="left">Error in pattern (generated when --pattern option is used)</td></tr>
+<tr><td valign="top" align="right">8</td><td valign="top" align="left">Error in Reader registration (generated when --chkregister option is used)</td></tr>
+<tr><td valign="top" align="right">9</td><td valign="top" align="left">Out of memory error</td></tr>
+</table>
+</p>
+
 
 </dd><dt><h5>Related * commands</h5></dt><dd><a href="#command_xmlcatalog">*XMLCatalog</a></dd></dd></dl></dd></dl><hr/></body>
 
 
 
 <dl><dt><h2><a name="metadata">Document information</a></h2></dt><dd><table summary="Meta information table"><tr><th align="right" valign="top">Maintainer(s):</th><td>
-  Justin Fletcher &lt;<a href="mailto:justin.fletcher@ntlworld.com">justin.fletcher@ntlworld.com</a>&gt;
+  Gerph &lt;<a href="mailto:gerph@gerph.org">gerph@gerph.org</a>&gt;
  </td></tr><tr><th align="right" valign="top">History:</th><td><table border="0" summary="Document history"><tr><th align="left">Revision</th><th align="left">Date</th><th align="left">Author</th><th align="left">Changes</th></tr>
-  <tr><td valign="top">1</td><td valign="top" style="white-space: nowrap;">15 Dec 2002</td><td valign="top">JRF</td><td valign="top"><strong>Initial version</strong><br/></td></tr>
-  <tr><td valign="top">2</td><td valign="top" style="white-space: nowrap;">15 Jan 2002</td><td valign="top">JRF</td><td valign="top"><strong>LibXML 2.4.13</strong><br/><ul>
-   <li>XMLLint: -output, and -dropdtd documented</li>
-   <li>Added note about filename usage</li>
+  <tr><td valign="top">1</td><td valign="top" style="white-space: nowrap;">15 Dec 2002</td><td valign="top">Gerph</td><td valign="top"><strong>Initial version</strong><br/></td></tr>
+  <tr><td valign="top">2</td><td valign="top" style="white-space: nowrap;">15 Jan 2002</td><td valign="top">Gerph</td><td valign="top"><strong>LibXML 2.4.13</strong><br/><ul>
+   <li>XMLLint: -output, and -dropdtd documented.</li>
+   <li>Added note about filename usage.</li>
+  </ul></td></tr>
+  <tr><td valign="top">3</td><td valign="top" style="white-space: nowrap;">20 Jun 2021</td><td valign="top">Gerph</td><td valign="top"><strong>LibXML 2.9.12</strong><br/><ul>
+   <li>Huge upgrade for ~17 years development of LibXML.</li>
+   <li>Updated documentation of features.</li>
   </ul></td></tr>
  </table></td></tr><tr><th align="right" valign="top">Related:</th><td>None</td></tr><tr><th align="right" valign="top">Disclaimer:</th><td align="left" valign="top">
   <p>
-   This document covers the RISC OS version of the XML tools from LibXML2,
-   LibXSLT and XSLDebug.<br/>
-   It is maintained exclusively by the Justin Fletcher, based on the
+   This document covers the RISC OS version of the XML tools from LibXML2.<br/>
+   It is maintained by Gerph, based on the
    documentation originally written by the authors of the libraries.
   </p>
  </td></tr></table></dd></dl><hr/></html>

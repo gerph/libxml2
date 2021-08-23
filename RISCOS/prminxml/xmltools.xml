@@ -52,6 +52,44 @@ catalog files describing catalog entries.</p>
 </related>
 
 </sysvar-definition>
+
+
+<sysvar-definition name="XML$CatalogDebug"
+                   description="Enable debugging of LibXML2 catalog processing">
+<use>
+<p>This variable controls whether the LibXML2 produces debug output.
+    The output will be written to the standard output stream. The variable
+    must be set to a non-zero value to enable debugging.</p>
+</use>
+
+<related>
+<!-- <reference type="command" name="Com" /> -->
+<!-- <reference type="swi" name="thingy" /> -->
+<reference type="sysvar" name="SGML$CatalogFiles" />
+<reference type="sysvar" name="XML$CatalogFiles" />
+</related>
+
+</sysvar-definition>
+
+
+
+<sysvar-definition name="XMLLint$Indent"
+                   description="Sets the indent used by the XMLLint tool">
+<use>
+    <p>This variable changes the default indentation used by the XMLLint tool.
+        The indentation level is specified as the characters to output when
+        indenting the output from XMLLint. If unset, the indentation defaults
+        to two spaces.</p>
+</use>
+
+<related>
+<!-- <reference type="command" name="Com" /> -->
+<!-- <reference type="swi" name="thingy" /> -->
+<reference type="sysvar" name="SGML$CatalogFiles" />
+</related>
+
+</sysvar-definition>
+
 </section>
 
 <section title="*Commands">
@@ -86,8 +124,7 @@ catalog files describing catalog entries.</p>
  Create a new XML catalog. Outputs to stdout, ignoring
  <userreplace>filename</userreplace> unless <switch name="noout" /> is
  used, in which case it creates a new catalog file
- <userreplace>filename</userreplace>.
-</parameter>
+ <userreplace>filename</userreplace>.</parameter>
 <parameter switch="add">
  Add an entry to catalog file <userreplace>filename</userreplace>.
  <list>
@@ -121,23 +158,19 @@ catalog files describing catalog entries.</p>
   only a single argument, a <userreplace>filename</userreplace>, is used.
   This is used to add the name of a catalog file to an SGML supercatalog, a
   file that contains references to other included SGML catalog files.
- </p>
-</parameter>
+ </p></parameter>
 
 <parameter switch="del">
  Remove entries from the catalog file <userreplace>filename</userreplace>
  matching <userreplace>values</userreplace>. This switch will not
  overwrite <userreplace>filename</userreplace>, outputing to
- stdout, unless <switch name="noout" /> is used.
-</parameter>
+ stdout, unless <switch name="noout" /> is used.</parameter>
 <parameter switch="noout">
- Save output to the named catalogs rather than outputing to stdout.
-</parameter>
+ Save output to the named catalogs rather than outputing to stdout.</parameter>
 <parameter switch="no-super-update">
  Do not update SGML super catalogs</parameter>
 <parameter switch="verbose">
- output debugging information.
-</parameter>
+ output debugging information.</parameter>
 
 <use>
 <p>xmlcatalog is a command line application allowing users to monitor and
@@ -260,76 +293,234 @@ xmlcatalog is executing</value>
 
 </syntax>
 
-<parameter switch="version">display the version of the XML library used</parameter>
-<parameter switch="debug">dump a debug tree of the in-memory document</parameter>
-<parameter switch="shell">run a navigating shell</parameter>
-<parameter switch="debugent">debug the entities defined in the document</parameter>
-<parameter switch="copy">used to test the internal copy implementation</parameter>
-<parameter switch="recover">output what was parsable on broken XML documents</parameter>
-<parameter switch="huge">remove any internal arbitrary parser limits</parameter>
-<parameter switch="noent">substitute entity references by their value</parameter>
-<parameter switch="noenc">ignore any encoding specified inside the document</parameter>
-<parameter switch="noout">don't output the result tree</parameter>
-<parameter switch="path" name="paths">provide a set of paths for resources</parameter>
-<parameter switch="load-trace">print trace of all external entities loaded</parameter>
-<parameter switch="nonet">refuse to fetch DTDs or entities over network</parameter>
-<parameter switch="nocompact">do not generate compact text nodes</parameter>
-<parameter switch="htmlout">output results as HTML</parameter>
-<parameter switch="nowrap">do not put HTML doc wrapper</parameter>
-<parameter switch="valid">validate the document in addition to std well-formed check</parameter>
-<parameter switch="postvalid">do a posteriori validation, i.e after parsing</parameter>
-<parameter switch="dtdvalid" name="URL">do a posteriori validation against a given DTD</parameter>
-<parameter switch="dtdvalidfpi" name="FPI">same as 'dtdvalid' but name the DTD with a Public Identifier</parameter>
-<parameter switch="quiet">be quiet when succeeded</parameter>
-<parameter switch="timing">print some timings</parameter>
-<parameter switch="output" name="file">save output to a given file</parameter>
-<parameter switch="repeat">repeat 100 times, for timing or profiling</parameter>
-<parameter switch="insert">ad-hoc test for valid insertions</parameter>
-<parameter switch="html">use the HTML parser</parameter>
-<parameter switch="xmlout">force to use the XML serializer when using --html</parameter>
-<parameter switch="nodefdtd">do not default HTML doctype</parameter>
-<parameter switch="push">use the push mode of the parser</parameter>
-<parameter switch="pushsmall">use the push mode of the parser using tiny increments</parameter>
-<parameter switch="maxmem" name="nbbytes">limits memory allocation to nbbytes bytes</parameter>
-<parameter switch="nowarning">do not emit warnings from parser/validator</parameter>
-<parameter switch="noblanks">drop (ignorable?) blanks spaces</parameter>
-<parameter switch="nocdata">replace cdata section with text nodes</parameter>
-<parameter switch="format">reformat/reindent the input</parameter>
-<parameter switch="encode" name="encoding">output in the given encoding</parameter>
-<parameter switch="dropdtd">remove the DOCTYPE of the input docs</parameter>
-<parameter switch="pretty" name="style">pretty-print in a particular style<br/>
-                     0 : Do not pretty print<br/>
-                     1 : Format the XML content, as --format<br/>
-                     2 : Add whitespace inside tags, preserving content</parameter>
-<parameter switch="c14n">save in W3C canonical format v1.0 (with comments)</parameter>
-<parameter switch="c14n11">save in W3C canonical format v1.1 (with comments)</parameter>
+<parameter switch="auto">Generate a small document for testing purposes.</parameter>
+
+<parameter switch="catalogs">Use the SGML catalog(s) from <sysvar>SGML$CatalogFiles</sysvar>. Otherwise XML
+       catalogs starting from <sysvar>XML$CatalogFiles</sysvar> are used by default.</parameter>
+
+<parameter switch="chkregister">Turn on node registration. Useful for developers testing libxml
+       node tracking code.</parameter>
+
+<parameter switch="compress">Turn on gzip(1) compression of output.</parameter>
+
+<parameter switch="copy">Test the internal copy implementation.</parameter>
+
+<parameter switch="c14n">Use the W3C XML Canonicalisation (C14N) to serialize the result of
+       parsing to stdout. It keeps comments in the result.</parameter>
+<parameter switch="c14n11">Save in W3C canonical format v1.1 (with comments).</parameter>
+
+<parameter switch="dtdvalid" name="URL">Use the DTD specified by an URL for validation.</parameter>
+
+<parameter switch="dtdvalidfpi" name="FPI">Use the DTD specified by a Formal Public Identifier FPI for
+       validation, note that this will require a catalog exporting that
+       Formal Public Identifier to work.</parameter>
+
+<parameter switch="debug">Parse a file and output an annotated tree of the in-memory version
+       of the document.</parameter>
+
+<parameter switch="debugent">Debug the entities defined in the document.</parameter>
+
+<parameter switch="dropdtd">Remove DTD from output.</parameter>
+
+<parameter switch="dtdattr">Fetch external DTD and populate the tree with inherited attributes.</parameter>
+
+<parameter switch="encode" name="encoding">Output in the given encoding. Note that this works for full
+       document not fragments or result from XPath queries.</parameter>
+
 <parameter switch="exc-c14n">save in W3C exclusive canonical format (with comments)</parameter>
-<parameter switch="nsclean">remove redundant namespace declarations</parameter>
-<parameter switch="testIO">test user I/O support</parameter>
-<parameter switch="catalogs">use SGML catalogs from SGML$CatalogFiles, otherwise XML Catalogs starting from
-                 XML$CatalogFiles are activated by default</parameter>
-<parameter switch="nocatalogs">deactivate all catalogs</parameter>
-<parameter switch="auto">generate a small doc on the fly</parameter>
-<parameter switch="xinclude">do XInclude processing</parameter>
-<parameter switch="noxincludenode">same but do not generate XInclude nodes</parameter>
-<parameter switch="nofixup-base-uris">do not fixup xml:base uris</parameter>
-<parameter switch="loaddtd">fetch external DTD</parameter>
-<parameter switch="dtdattr">loaddtd and populate the tree with inherited attributes</parameter>
-<parameter switch="throwback">provide feedback to external tasks</parameter>
-<parameter switch="stream">use the streaming interface to process very large files</parameter>
-<parameter switch="walker">create a reader and walk though the resulting doc</parameter>
-<parameter switch="pattern" name="pattern_value">test the pattern support</parameter>
-<parameter switch="chkregister"> verify the node registration code</parameter>
-<parameter switch="relaxng" name="schema">do RelaxNG validation against the schema</parameter>
-<parameter switch="schema" name="schema">do validation against the WXS schema</parameter>
-<parameter switch="sax1">use the old SAX1 interfaces for processing</parameter>
-<parameter switch="sax">do not build a tree but work just at the SAX level</parameter>
-<parameter switch="oldxml10">use XML-1.0 parsing rules before the 5th edition</parameter>
-<parameter switch="xpath" name="expr">evaluate the XPath expression, imply --noout</parameter>
+
+<parameter switch="format">Reformat and reindent the output. The XMLLINT_INDENT environment
+       variable controls the indentation. The default value is two spaces
+       " ").
+       <fixme>What variable?</fixme>
+   </parameter>
+
+<parameter switch="help">Print out a short usage summary for xmllint.</parameter>
+
+<parameter switch="html">Use the HTML parser.</parameter>
+
+<parameter switch="htmlout">Output results as an HTML file. This causes xmllint to output the
+       necessary HTML tags surrounding the result tree output so the
+       results can be displayed/viewed in a browser.</parameter>
+
+<parameter switch="huge">Remove any internal arbitrary parser limits.</parameter>
+
+<parameter switch="insert">Test for valid insertions.</parameter>
+
+<parameter switch="loaddtd">Fetch an external DTD.</parameter>
+
+<parameter switch="load-trace">Display all the documents loaded during the processing to stderr.</parameter>
+
+<parameter switch="maxmem" name="nnbytes">Test the parser memory support.  'nnbytes' is the maximum number of
+       bytes the library is allowed to allocate. This can also be used to
+       make sure batch processing of XML files will not exhaust the
+       virtual memory of the server running them.</parameter>
+
+<parameter switch="memory">Parse from memory.</parameter>
+
+<parameter switch="noblanks">Drop ignorable blank spaces.</parameter>
+
+<parameter switch="nocatalogs">Do not use any catalogs.</parameter>
+
+<parameter switch="nocdata">Substitute CDATA section by equivalent text nodes.</parameter>
+
+<parameter switch="nocompact">Do not generate compact text nodes.</parameter>
+<parameter switch="nodefdtd">Do not default HTML doctype.</parameter>
+<parameter switch="noenc">Ignore any encoding specified inside the document.</parameter>
+
+<parameter switch="noent">Substitute entity values for entity references. By default, xmllint
+       leaves entity references in place.</parameter>
+
+<parameter switch="nofixup-base-uris">Do not fixup xml:base URIs.</parameter>
+
+<parameter switch="nonet">Do not use the Internet to fetch DTDs or entities.</parameter>
+
+<parameter switch="noout">Suppress output. By default, xmllint outputs the result tree.</parameter>
+
+<parameter switch="nowarning">Do not emit warnings from the parser and/or validator.</parameter>
+
+<parameter switch="nowrap">Do not output HTML doc wrapper.</parameter>
+
+<parameter switch="noxincludenode">Do XInclude processing but do not generate XInclude start and end
+       nodes.</parameter>
+
+<parameter switch="nsclean">Remove redundant namespace declarations.</parameter>
+
+<parameter switch="oldxml10">Use XML-1.0 parsing rules before the 5th edition.</parameter>
+
+<parameter switch="output" name="file">Define a file path where xmllint will save the result of parsing.
+       Usually the programs build a tree and save it on stdout, with this
+       option the result XML instance will be saved onto a file.</parameter>
+
+<parameter switch="path" name="paths">
+       Use the (space- or colon-separated) list of filesystem paths
+       specified by 'paths' to load DTDs or entities. Enclose
+       space-separated lists by quotation marks.</parameter>
+
+<parameter switch="pattern" name="pattern">Used to exercise the pattern recognition engine, which can be used
+       with the reader interface to the parser. It allows to select some
+       nodes in the document based on an XPath (subset) expression. Used
+       for debugging.</parameter>
+
+<parameter switch="postvalid">Validate after parsing has completed.</parameter>
+
+<parameter switch="pretty" name="style">Pretty-print in a particular style<br/>
+                     0 : Do not pretty print.<br/>
+                     1 : Format the XML content, as --format.<br/>
+                     2 : Add whitespace inside tags, preserving content.</parameter>
+
+<parameter switch="push">Use the push mode of the parser.</parameter>
+
+<parameter switch="pushsmall">Use the push mode of the parser using tiny increments.</parameter>
+
+<parameter switch="quiet">Be quiet when succeeded.</parameter>
+
+<parameter switch="recover">Output any parsable portions of an invalid document.</parameter>
+
+<parameter switch="relaxng" name="schema">Use RelaxNG file named 'schema' for validation.</parameter>
+
+<parameter switch="repeat">Repeat 100 times, for timing or profiling.</parameter>
+
+<parameter switch="sax">Do not build a tree but work just at the SAX level.</parameter>
+<parameter switch="sax1">Use the old SAX1 interfaces for processing.</parameter>
+
+<parameter switch="schema" name="schema">Use a W3C XML Schema file named 'schema' for validation.</parameter>
+
+<parameter switch="shell">Run a navigating shell. Details on available commands in shell mode
+       are below.</parameter>
+
+<parameter switch="xpath" name="expr">
+       Run an XPath expression given as argument and print the result. In
+       case of a nodeset result, each node in the node set is serialized
+       in full in the output. In case of an empty node set the "XPath set
+       is empty" result will be shown and an error exit code will be
+       returned.</parameter>
+
+<parameter switch="stream">Use streaming API - useful when used in combination with --relaxng
+       or --valid options for validation of files that are too large to be
+       held in memory.</parameter>
+
+<parameter switch="testIO">Test user input/output support.</parameter>
+
+<parameter switch="throwback">Provide feedback to external tasks (RISC OS only).</parameter>
+
+<parameter switch="timing">Output information about the time it takes xmllint to perform the
+       various steps.</parameter>
+
+<parameter switch="valid">Determine if the document is a valid instance of the included
+       Document Type Definition (DTD). A DTD to be validated against also
+       can be specified at the command line using the --dtdvalid option.
+       By default, xmllint also checks to determine if the document is
+       well-formed.</parameter>
+
+<parameter switch="version">Display the version of libxml used.</parameter>
+
+<parameter switch="walker">Test the walker module, which is a reader interface but for a
+       document tree, instead of using the reader API on an unparsed
+       document it works on an existing in-memory tree. Used for
+       debugging.</parameter>
+
+<parameter switch="xinclude">Do XInclude processing.</parameter>
+
+<parameter switch="xmlout">Used in conjunction with --html. Usually when HTML is parsed the
+       document is saved with the HTML serializer. But with this option
+       the resulting document is saved with the XML serializer. This is
+       primarily used to generate XHTML from HTML input.</parameter>
+
+
 
 <use>
 <p>xmllint is a command line application allowing users to process XML. It
-is included in libxml2.</p>
+is included in libxml2 distributions. The files specified on the command line are
+in URL format - using '/' as a directory separator, and '.' as an extension.
+</p>
+
+<category title="XMLLint shell">
+<p>The tool includes a 'shell' - a line based command system which can be used
+    to navigate through an XML document. The commands which can be used in the
+    shell are:</p>
+
+<p>
+<value-table head-number="Command">
+    <value number="base">Display XML base of the node.</value>
+    <value number="bye">Leave the shell.</value>
+    <value number="cat NODE">Display the given node or the current one.</value>
+    <value number="cd PATH">Change the current node to the given path (if unique) or root if no argument is given.</value>
+    <value number="dir PATH">Dumps information about the node (namespace, attributes, content).</value>
+    <value number="du PATH">Show the structure of the subtree under the given path or the current node.</value>
+    <value number="exit">Leave the shell.</value>
+    <value number="help">Show this help.</value>
+    <value number="free">Display memory usage.</value>
+    <value number="load FILENAME">Load a new document with the given filename.</value>
+    <value number="ls PATH">List contents of the given path or the current directory.</value>
+    <value number="pwd">Display the path to the current node.</value>
+    <value number="quit">Leave the shell.</value>
+    <value number="save FILENAME">Save the current document to the given filename or to the original name.</value>
+    <value number="validate">Check the document for errors.</value>
+    <value number="write FILENAME">Write the current node to the given filename.</value>
+</value-table>
+</p>
+
+</category>
+
+<category title="XMLLint return codes">
+    <p>xmllint return codes provide information that can be used to determine is status.</p>
+
+<p>
+<value-table>
+<value number="0">No error</value>
+<value number="1">Unclassified</value>
+<value number="2">Error in DTD</value>
+<value number="3">Validation error</value>
+<value number="4">Validation error</value>
+<value number="5">Error in schema compilation</value>
+<value number="6">Error writing output</value>
+<value number="7">Error in pattern (generated when --pattern option is used)</value>
+<value number="8">Error in Reader registration (generated when --chkregister option is used)</value>
+<value number="9">Out of memory error</value>
+</value-table>
+</p>
+</category>
 
 </use>
 
