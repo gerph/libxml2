@@ -15,3 +15,8 @@ If "<Sys$ReturnCode>" <> "0" Then Error Failed at 'xmllint testdata/2-xhtml'
 echo *** Test simple DTD
 /aif32.xmllint --dtdvalid testdata/3-dtd testdata/3-address
 If "<Sys$ReturnCode>" <> "0" Then Error Failed at 'xmllint --dtdvalid testdata/3-dtd testdata/3-address'
+
+echo *** Test catalog lookup
+Set XML$CatalogFiles testdata.4-catalog
+/aif32.xmllint --dtdvalid http://gerph.example/dtd/3-dtd testdata/3-address
+If "<Sys$ReturnCode>" <> "0" Then Error Failed at 'xmllint --dtdvalid http://gerph.example/dtd/3-dtd testdata/3-address'
