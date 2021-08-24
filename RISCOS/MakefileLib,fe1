@@ -118,6 +118,7 @@ OBJS       = o.buf \
              o.xmlschemastypes \
              o.xmlstring \
              o.xmlunicode \
+             o.xmlwriter \
              o.xpath \
              o.xpointer \
              o.riscos \
@@ -125,7 +126,6 @@ OBJS       = o.buf \
 UNUSED = \
              o.trio \
              o.trionan \
-             o.xmlwriter \
              o.throwback \
 
 TESTS =      o.testAutomata \

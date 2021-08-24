@@ -50,6 +50,10 @@ LIBS       = ${CLIB} C:libxml.o.libxml
 OBJS       = o.${TARGET} \
 			 o.throwback
 
+ifeq (${TARGET},testOOM)
+OBJS      += o.testOOMlib
+endif
+
 # Space separated list of XML files for building documentation.
 ifeq (${TARGET},xmllint)
 DOCSRC = prminxml/xmltools.xml

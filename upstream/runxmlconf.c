@@ -11,13 +11,17 @@
 
 #ifdef LIBXML_XPATH_ENABLED
 
+#ifndef __riscos
 #if !defined(_WIN32) || defined(__CYGWIN__)
 #include <unistd.h>
 #endif
+#endif
 #include <string.h>
+#ifndef __riscos
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#endif
 
 #include <libxml/parser.h>
 #include <libxml/parserInternals.h>
@@ -27,6 +31,10 @@
 
 #include <libxml/xpath.h>
 #include <libxml/xpathInternals.h>
+
+#ifdef __riscos
+#include "libxml/riscos.h"
+#endif
 
 #define LOGFILE "runxmlconf.log"
 static FILE *logfile = NULL;
@@ -48,6 +56,22 @@ const char *skipped_tests[] = {
  ************************************************************************/
 
 static int checkTestFile(const char *filename) {
+#ifdef __riscos
+    {
+        FILE *fh;
+        char const *path=(char const *)riscosfilename(filename);
+        fh = fopen(path, "rb");
+        if (fh)
+        {
+            fclose(fh);
+            return 1;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+#else
     struct stat buf;
 
     if (stat(filename, &buf) == -1)
@@ -62,6 +86,7 @@ static int checkTestFile(const char *filename) {
 #endif
 
     return(1);
+#endif
 }
 
 static xmlChar *composeDir(const xmlChar *dir, const xmlChar *path) {
