@@ -535,6 +535,7 @@ endTimer(char *format, ...)
 #include <libxml/riscos.h>
 #include "throwback.h"
 
+int native=0;
 int throwback=0;
 
 /**
@@ -784,8 +785,6 @@ static void
 xmllintErrorFunc(void *user ATTRIBUTE_UNUSED, xmlErrorPtr err) {
     va_list args;
     xmlParserCtxtPtr ctxt = err->ctxt;
-
-    printf("Error Throwback\n");
 
     if (err->file)
     {
@@ -2843,7 +2842,11 @@ static void parseAndPrintFile(char *filename, xmlParserCtxtPtr rectxt) {
 		    if (output == NULL)
 			out = stdout;
 		    else {
-			out = fopen(output,"wb");
+#ifdef __riscos
+			out = fopen(riscosfilename(output),"wb");
+#else
+            out = fopen(output,"wb");
+#endif
 		    }
 		    if (out != NULL) {
 			if (htmlDocDump(out, doc) < 0)
@@ -2953,35 +2956,27 @@ static void parseAndPrintFile(char *filename, xmlParserCtxtPtr rectxt) {
 	    } else
 #endif /* HAVE_MMAP */
 	    if (compress) {
-#ifdef __riscos
-		xmlSaveFile(output ? riscosfilename(output) : "-", doc);
-		if (output)
-		    settype(riscosfilename(output), 0xf89); /* GZip */
-#else
 		xmlSaveFile(output ? output : "-", doc);
+#ifdef __riscos
+        if (output)
+            settype(riscosfilename(output), 0xf89); /* GZip */
 #endif
 	    } else if (oldout) {
 	        if (encoding != NULL) {
 		    if (format == 1) {
-#ifdef __riscos
-		    ret = xmlSaveFormatFileEnc(output ? riscosfilename(output) : "-", doc,
-			                       encoding, 1);
-		    if (ret == 0 && output)
-		      settype(riscosfilename(output), 0xf80); /* XML */
-#else
 			ret = xmlSaveFormatFileEnc(output ? output : "-", doc,
 						   encoding, 1);
+#ifdef __riscos
+            if (ret == 0 && output)
+              settype(riscosfilename(output), 0xf80); /* XML */
 #endif
 		    }
 		    else {
-#ifdef __riscos
-		    ret = xmlSaveFileEnc(output ? riscosfilename(output) : "-", doc,
-			                     encoding);
-		    if (ret == 0 && output)
-		      settype(riscosfilename(output), 0xf80); /* XML */
-#else
 			ret = xmlSaveFileEnc(output ? output : "-", doc,
 			                     encoding);
+#ifdef __riscos
+            if (ret == 0 && output)
+              settype(riscosfilename(output), 0xf80); /* XML */
 #endif
 		    }
 		    if (ret < 0) {
@@ -2990,12 +2985,10 @@ static void parseAndPrintFile(char *filename, xmlParserCtxtPtr rectxt) {
 			progresult = XMLLINT_ERR_OUT;
 		    }
 		} else if (format == 1) {
-#ifdef __riscos
-		    ret = xmlSaveFormatFile(output ? riscosfilename(output) : "-", doc, 1);
-		    if (ret == 0 && output)
-		      settype(riscosfilename(output), 0xf80); /* XML */
-#else
 		    ret = xmlSaveFormatFile(output ? output : "-", doc, 1);
+#ifdef __riscos
+            if (ret == 0 && output)
+              settype(riscosfilename(output), 0xf80); /* XML */
 #endif
 		    if (ret < 0) {
 			fprintf(stderr, "failed save to %s\n",
@@ -3049,11 +3042,7 @@ static void parseAndPrintFile(char *filename, xmlParserCtxtPtr rectxt) {
 		    ctxt = xmlSaveToFd(1, encoding, saveOpts);
 #endif
 		else
-#ifdef __riscos
-		    ctxt = xmlSaveToFilename(riscosfilename(output), encoding, saveOpts);
-#else
 		    ctxt = xmlSaveToFilename(output, encoding, saveOpts);
-#endif
 		if (ctxt != NULL) {
 		    if (xmlSaveDoc(ctxt, doc) < 0) {
 			fprintf(stderr, "failed save to %s\n",
@@ -3089,6 +3078,10 @@ static void parseAndPrintFile(char *filename, xmlParserCtxtPtr rectxt) {
 
 		if (output != NULL)
 		    fclose(out);
+#ifdef __riscos
+        if (output)
+            settype(riscosfilename(output), htmlout ? 0xfaf : 0xf80); /* HTML/XML */
+#endif
 	    } else {
 		fprintf(stderr, "failed to open %s\n", output);
 		progresult = XMLLINT_ERR_OUT;
@@ -3108,9 +3101,20 @@ static void parseAndPrintFile(char *filename, xmlParserCtxtPtr rectxt) {
 	if ((timing) && (!repeat)) {
 	    startTimer();
 	}
-	if (dtdvalid != NULL)
+	if (dtdvalid != NULL) {
+#ifdef __riscos
+            if (native)
+            {
+              dtdvalid = (char *)xmlStrdup((xmlChar*)unixfilename(dtdvalid));
+              if (dtdvalid == NULL)
+              {
+                fprintf(stderr, "not enough memory for filename translation\n");
+                exit(1);
+              }
+            }
+#endif
 	    dtd = xmlParseDTD(NULL, (const xmlChar *)dtdvalid);
-	else
+	} else
 	    dtd = xmlParseDTD((const xmlChar *)dtdvalidfpi, NULL);
 	if ((timing) && (!repeat)) {
 	    endTimer("Parsing DTD");
@@ -3464,6 +3468,7 @@ static void usage(FILE *f, const char *name) {
     fprintf(f, "\t--dtdattr : loaddtd + populate the tree with inherited attributes \n");
 #ifdef __riscos
     fprintf(f, "\t--throwback : provide feedback to external tasks\n");
+    fprintf(f, "\t--native : accept native filenames\n");
 #endif
 #ifdef LIBXML_READER_ENABLED
     fprintf(f, "\t--stream : use the streaming interface to process very large files\n");
@@ -3581,7 +3586,18 @@ main(int argc, char **argv) {
 	         (!strcmp(argv[i], "-output")) ||
 	         (!strcmp(argv[i], "--output"))) {
 	    i++;
-	    output = argv[i];
+#ifdef __riscos
+        if (native)
+        {
+          argv[i] = (char *)xmlStrdup((xmlChar*)unixfilename(argv[i]));
+          if (argv[i] == NULL)
+          {
+            fprintf(stderr, "not enough memory for filename translation\n");
+            exit(1);
+          }
+        }
+#endif
+        output = argv[i];
 	}
 #endif /* LIBXML_OUTPUT_ENABLED */
 	else if ((!strcmp(argv[i], "-htmlout")) ||
@@ -3833,6 +3849,10 @@ main(int argc, char **argv) {
                 (!strcmp(argv[i], "-throwback")) ||
                 (!strcmp(argv[i], "--throwback"))) {
             throwback=1;
+        } else if ((!strcmp(argv[i], "-N")) ||
+                (!strcmp(argv[i], "-native")) ||
+                (!strcmp(argv[i], "--native"))) {
+            native=1;
 #endif
 #ifdef LIBXML_SCHEMAS_ENABLED
 	} else if ((!strcmp(argv[i], "-relaxng")) ||
@@ -4143,6 +4163,17 @@ main(int argc, char **argv) {
 	    startTimer();
 	/* Remember file names.  "-" means stdin.  <sven@zen.org> */
 	if ((argv[i][0] != '-') || (strcmp(argv[i], "-") == 0)) {
+#ifdef __riscos
+        if (native)
+        {
+          argv[i] = (char *)xmlStrdup((xmlChar*)unixfilename(argv[i]));
+          if (argv[i] == NULL)
+          {
+            fprintf(stderr, "not enough memory for filename translation\n");
+            exit(1);
+          }
+        }
+#endif
 	    if (repeat) {
 		xmlParserCtxtPtr ctxt = NULL;
 

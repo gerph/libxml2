@@ -16,6 +16,28 @@ echo *** Test simple DTD
 /aif32.xmllint --dtdvalid testdata/3-dtd testdata/3-address
 If "<Sys$ReturnCode>" <> "0" Then Error Failed at 'xmllint --dtdvalid testdata/3-dtd testdata/3-address'
 
+echo *** Test native filenames
+/aif32.xmllint --native --dtdvalid testdata.3-dtd testdata.3-address
+If "<Sys$ReturnCode>" <> "0" Then Error Failed at 'xmllint --native --dtdvalid testdata.3-dtd testdata.3-address'
+
+echo *** Test formatting
+/aif32.xmllint --format testdata/3-address
+If "<Sys$ReturnCode>" <> "0" Then Error Failed at 'xmllint --format testdata/3-address'
+
+echo *** Test output formatted
+remove testdata.output-formatted
+/aif32.xmllint --format --output testdata/output-formatted testdata/3-address
+If "<Sys$ReturnCode>" <> "0" Then Error Failed at 'xmllint --format --output testdata/output-formatted testdata/3-address'
+IfThere testdata.output-formatted Then Echo Created OK Else Error Failed to create file
+remove testdata.output-formatted
+
+echo *** Test native output formatted
+remove testdata.output-formatted
+/aif32.xmllint --native --format --output testdata.output-formatted testdata.3-address
+If "<Sys$ReturnCode>" <> "0" Then Error Failed at 'xmllint --native --format --output testdata.output-formatted testdata.3-address'
+IfThere testdata.output-formatted Then Echo Created OK Else Error Failed to create file
+remove testdata.output-formatted
+
 echo *** Test catalog lookup
 Set XML$CatalogFiles testdata.4-catalog
 /aif32.xmllint --dtdvalid http://gerph.example/dtd/3-dtd testdata/3-address

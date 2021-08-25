@@ -280,6 +280,7 @@ xmlcatalog is executing</value>
  <optional><switch name="loaddtd" /></optional>
  <optional><switch name="dtdattr" /></optional>
  <optional><switch name="throwback" /></optional>
+ <optional><switch name="native" /></optional>
  <optional><switch name="stream" /></optional>
  <optional><switch name="walker" /></optional>
  <optional><switch name="pattern" /><userreplace>pattern</userreplace></optional>
@@ -357,6 +358,9 @@ xmlcatalog is executing</value>
        virtual memory of the server running them.</parameter>
 
 <parameter switch="memory">Parse from memory.</parameter>
+
+<parameter switch="native">Filenames on the command line are in native RISC OS format.
+        Default is to use URI format.</parameter>
 
 <parameter switch="noblanks">Drop ignorable blank spaces.</parameter>
 
@@ -472,7 +476,8 @@ xmlcatalog is executing</value>
 <use>
 <p>xmllint is a command line application allowing users to process XML. It
 is included in libxml2 distributions. The files specified on the command line are
-in URL format - using '/' as a directory separator, and '.' as an extension.
+in URI format - using '/' as a directory separator, and '.' as an extension. This
+can be changed to native format by specifying the '--native' switch.
 </p>
 
 <category title="XMLLint shell">
