@@ -1,24 +1,24 @@
-/* LibXML2 (1.40) 21:25:28 17/8/2021
+/* LibXML2 (1.41) 21:47:04 25/8/2021
  *
  * This file is automatically maintained, do not edit manually.
  *
  */
-#define Module_MajorVersion_CMHG        1.40
+#define Module_MajorVersion_CMHG        1.41
 #define Module_MinorVersion_CMHG        
-#define Module_Date_CMHG                17 Aug 2021
+#define Module_Date_CMHG                25 Aug 2021
 
-#define Module_MajorVersion             "1.40"
-#define Module_Version                  140
+#define Module_MajorVersion             "1.41"
+#define Module_Version                  141
 #define Module_MinorVersion             ""
-#define Module_Date                     "17 Aug 2021"
+#define Module_Date                     "25 Aug 2021"
 
-#define Module_ApplicationDate2         "17-Aug-21"
-#define Module_ApplicationDate4         "17-Aug-2021"
+#define Module_ApplicationDate2         "25-Aug-21"
+#define Module_ApplicationDate4         "25-Aug-2021"
 
 #define Module_ComponentName            "LibXML2"
 #define Module_ComponentBranch          ""
 #define Module_ComponentPath            ""
 
-#define Module_FullVersion              "1.40"
-#define Module_FullVersionAndDate       "1.40 (17 Aug 2021)"
-#define Module_HelpVersion              "1.40 (17 Aug 2021)"
+#define Module_FullVersion              "1.41"
+#define Module_FullVersionAndDate       "1.41 (25 Aug 2021)"
+#define Module_HelpVersion              "1.41 (25 Aug 2021)"
